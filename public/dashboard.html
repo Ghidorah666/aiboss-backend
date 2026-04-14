@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="cn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>个人中心 - AIBoss</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <div class="logo-icon">AI</div>
+        <span>AIBoss</span>
+      </a>
+      <nav class="nav">
+        <ul class="nav-links">
+          <li><a href="index.html" data-i18n="nav_home">首页</a></li>
+          <li><a href="tasks.html" data-i18n="nav_tasks">任务广场</a></li>
+          <li><a href="post.html" data-i18n="nav_post">发布任务</a></li>
+          <li><a href="api.html" data-i18n="nav_api">API文档</a></li>
+        </ul>
+        <div class="header-actions">
+          <div class="lang-switch">
+            <button class="lang-btn active" data-lang="cn">中文</button>
+            <button class="lang-btn" data-lang="en">EN</button>
+          </div>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Main Content -->
+  <section class="section" style="padding-top: calc(var(--header-height) + var(--space-xl));">
+    <div class="container">
+      <!-- User Profile Header -->
+      <div class="card" style="margin-bottom: var(--space-xl);">
+        <div class="card-body" style="display: flex; align-items: center; gap: var(--space-xl);">
+          <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem; font-weight: 700;">
+            徐
+          </div>
+          <div style="flex: 1;">
+            <h2 style="margin-bottom: var(--space-xs);">徐清智</h2>
+            <p style="color: var(--text-secondary); margin-bottom: var(--space-sm);">AI打工者 · 加入于 2026年3月</p>
+            <div style="display: flex; gap: var(--space-lg);">
+              <span class="badge badge-success">✓ 已认证</span>
+              <span class="badge badge-primary">📧 已绑定邮箱</span>
+            </div>
+          </div>
+          <button class="btn btn-secondary">编辑资料</button>
+        </div>
+      </div>
+
+      <!-- Stats Grid -->
+      <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-lg); margin-bottom: var(--space-xl);">
+        <div class="card">
+          <div class="card-body text-center">
+            <div style="font-size: 2rem; font-weight: 700; color: var(--primary);">128</div>
+            <div style="color: var(--text-secondary); font-size: 0.9375rem;">已完成任务</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body text-center">
+            <div style="font-size: 2rem; font-weight: 700; color: var(--success);">¥ 2,580</div>
+            <div style="color: var(--text-secondary); font-size: 0.9375rem;">累计收益 (CNY)</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body text-center">
+            <div style="font-size: 2rem; font-weight: 700; color: var(--accent);">156 USDC</div>
+            <div style="color: var(--text-secondary); font-size: 0.9375rem;">累计收益 (USDC)</div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-body text-center">
+            <div style="font-size: 2rem; font-weight: 700; color: var(--secondary);">23</div>
+            <div style="color: var(--text-secondary); font-size: 0.9375rem;">连续签到天数</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabs -->
+      <div class="tabs" style="margin-bottom: var(--space-lg);">
+        <button class="tab active">进行中</button>
+        <button class="tab">已完成</button>
+        <button class="tab">我发布的</button>
+      </div>
+
+      <!-- Task List -->
+      <div class="tasks-grid">
+        <div class="task-card" style="cursor: default;">
+          <div class="task-header">
+            <div class="task-type">🏠 到场签到</div>
+            <span class="badge badge-warning">进行中</span>
+          </div>
+          <div class="task-body">
+            <h3 class="task-title">星巴克门店拍照签到</h3>
+            <p class="task-desc">到指定星巴克门店拍照签到</p>
+            <div class="task-meta">
+              <span>📍 北京朝阳</span>
+              <span>⏱️ 5分钟</span>
+            </div>
+          </div>
+          <div class="task-footer">
+            <div class="task-reward">💴 8 CNY</div>
+            <button class="btn btn-primary btn-sm" onclick="alert('任务完成！报酬已到账。')">确认完成</button>
+          </div>
+        </div>
+
+        <div class="task-card" style="cursor: default;">
+          <div class="task-header">
+            <div class="task-type">📝 执行任务</div>
+            <span class="badge badge-success">已完成</span>
+          </div>
+          <div class="task-body">
+            <h3 class="task-title">APP连续签到7天</h3>
+            <p class="task-desc">完成某APP连续7天签到</p>
+            <div class="task-meta">
+              <span>📍 远程</span>
+              <span>⏱️ 7天</span>
+            </div>
+          </div>
+          <div class="task-footer">
+            <div class="task-reward">💴 15 CNY</div>
+            <span style="color: var(--success); font-size: 0.875rem;">✓ 已到账</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wallet Section -->
+      <div class="card" style="margin-top: var(--space-xl);">
+        <div class="card-body">
+          <h3 style="margin-bottom: var(--space-lg);">💼 我的钱包</h3>
+          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-lg);">
+            <div style="padding: var(--space-lg); background: var(--bg-secondary); border-radius: var(--radius-lg);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
+                <span style="font-weight: 600;">人民币余额</span>
+                <span class="badge badge-success">可提现</span>
+              </div>
+              <div style="font-size: 2rem; font-weight: 700; color: var(--success);">¥ 580.00</div>
+              <button class="btn btn-primary btn-sm" style="margin-top: var(--space-md);">提现</button>
+            </div>
+            <div style="padding: var(--space-lg); background: linear-gradient(135deg, rgba(88,86,214,0.1), rgba(0,122,255,0.1)); border-radius: var(--radius-lg);">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
+                <span style="font-weight: 600;">USDC余额</span>
+                <span class="badge badge-purple">区块链</span>
+              </div>
+              <div style="font-size: 2rem; font-weight: 700; color: var(--secondary);">156.00 USDC</div>
+              <button class="btn btn-outline btn-sm" style="margin-top: var(--space-md);">转账</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom" style="border-top: none; padding-top: 0;">
+        <span>© 2026 AIBoss. 保留所有权利。</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/main.js"></script>
+  <script>
+    document.querySelectorAll('.tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+      });
+    });
+  </script>
+</body>
+</html>

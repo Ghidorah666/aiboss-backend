@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="cn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>登录 / 注册 - AIBoss</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .auth-container {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: calc(var(--header-height) + var(--space-xl)) var(--space-lg) var(--space-xl);
+    }
+    
+    .auth-card {
+      width: 100%;
+      max-width: 420px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-xl);
+      padding: var(--space-2xl);
+    }
+    
+    .auth-header {
+      text-align: center;
+      margin-bottom: var(--space-xl);
+    }
+    
+    .auth-header h1 {
+      font-size: 1.75rem;
+      margin-bottom: var(--space-xs);
+    }
+    
+    .auth-header p {
+      color: var(--text-secondary);
+    }
+    
+    .auth-divider {
+      display: flex;
+      align-items: center;
+      gap: var(--space-md);
+      margin: var(--space-lg) 0;
+      color: var(--text-tertiary);
+      font-size: 0.875rem;
+    }
+    
+    .auth-divider::before,
+    .auth-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-color);
+    }
+    
+    .alipay-btn {
+      width: 100%;
+      padding: var(--space-md);
+      background: #1677FF;
+      color: white;
+      border: none;
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: var(--space-sm);
+      transition: all var(--transition-fast);
+    }
+    
+    .alipay-btn:hover {
+      background: #0958DB;
+      transform: translateY(-2px);
+    }
+    
+    .phone-login {
+      display: flex;
+      gap: var(--space-sm);
+    }
+    
+    .phone-login select {
+      width: 100px;
+      padding: 14px 12px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      color: var(--text-primary);
+      font-size: 1rem;
+    }
+    
+    .phone-login input {
+      flex: 1;
+    }
+    
+    .send-code-btn {
+      padding: 14px 16px;
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      color: var(--primary);
+      font-size: 0.875rem;
+      font-weight: 600;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all var(--transition-fast);
+    }
+    
+    .send-code-btn:hover {
+      background: rgba(0,123,255,0.1);
+    }
+    
+    .agreement {
+      font-size: 0.8125rem;
+      color: var(--text-tertiary);
+      text-align: center;
+      margin-top: var(--space-md);
+    }
+    
+    .agreement a {
+      color: var(--primary);
+    }
+  </style>
+</head>
+<body>
+  <!-- Header -->
+  <header class="header">
+    <div class="header-inner">
+      <a href="index.html" class="logo">
+        <div class="logo-icon">AI</div>
+        <span>AIBoss</span>
+      </a>
+      <nav class="nav">
+        <div class="header-actions">
+          <a href="index.html" class="btn btn-secondary btn-sm">返回首页</a>
+        </div>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Auth Content -->
+  <div class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <h1>欢迎加入AIBoss</h1>
+        <p>让AI老板带你赚钱</p>
+      </div>
+
+      <!-- Login Tabs -->
+      <div class="tabs" style="margin-bottom: var(--space-xl);">
+        <button class="tab active" onclick="switchTab('login')">登录</button>
+        <button class="tab" onclick="switchTab('register')">注册</button>
+      </div>
+
+      <!-- Login Form -->
+      <div id="login-form">
+        <div class="form-group">
+          <label class="form-label">手机号</label>
+          <div class="phone-login">
+            <select>
+              <option>+86</option>
+              <option>+1</option>
+            </select>
+            <input type="tel" class="form-input" placeholder="请输入手机号">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">验证码</label>
+          <div style="display: flex; gap: var(--space-sm);">
+            <input type="text" class="form-input" placeholder="请输入验证码" style="flex: 1;">
+            <button class="send-code-btn">获取验证码</button>
+          </div>
+        </div>
+
+        <button class="btn btn-primary btn-lg" style="width: 100%;" onclick="alert('登录成功！')">
+          登录
+        </button>
+      </div>
+
+      <!-- Register Form -->
+      <div id="register-form" style="display: none;">
+        <div class="form-group">
+          <label class="form-label">手机号</label>
+          <div class="phone-login">
+            <select>
+              <option>+86</option>
+              <option>+1</option>
+            </select>
+            <input type="tel" class="form-input" placeholder="请输入手机号">
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">验证码</label>
+          <div style="display: flex; gap: var(--space-sm);">
+            <input type="text" class="form-input" placeholder="请输入验证码" style="flex: 1;">
+            <button class="send-code-btn">获取验证码</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">设置密码</label>
+          <input type="password" class="form-input" placeholder="请设置登录密码">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">邀请码（选填）</label>
+          <input type="text" class="form-input" placeholder="请输入邀请码">
+        </div>
+
+        <button class="btn btn-primary btn-lg" style="width: 100%;" onclick="alert('注册成功！')">
+          立即注册
+        </button>
+
+        <p class="agreement">
+          注册即表示同意<a href="#">《用户协议》</a>和<a href="#">《隐私政策》</a>
+        </p>
+      </div>
+
+      <div class="auth-divider">或</div>
+
+      <!-- Alipay Login -->
+      <button class="alipay-btn" onclick="alert('支付宝登录开发中...')">
+        <span style="font-size: 1.25rem;">💙</span>
+        <span>使用支付宝登录</span>
+      </button>
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+  <script>
+    function switchTab(tab) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+      
+      if (tab === 'login') {
+        document.getElementById('login-form').style.display = 'block';
+        document.getElementById('register-form').style.display = 'none';
+      } else {
+        document.getElementById('login-form').style.display = 'none';
+        document.getElementById('register-form').style.display = 'block';
+      }
+    }
+  </script>
+</body>
+</html>
