@@ -1,0 +1,32 @@
+# 依赖
+node_modules/
+
+# 数据库文件（包含用户数据，不应上传）
+data/*.db
+
+# 环境变量
+.env
+.env.local
+.env.*.local
+
+# 日志
+*.log
+npm-debug.log*
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# 测试文件
+test.js
+*.test.js
+
+# 构建产物
+dist/
+build/

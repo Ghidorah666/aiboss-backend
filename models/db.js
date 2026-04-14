@@ -155,10 +155,11 @@ const userOps = {
 // 任务操作
 const taskOps = {
   create: (data) => {
+    const currency = data.currency || 'cny';
     db.run(`
       INSERT INTO tasks (title, description, category, publisher_type, publisher_id, location, reward, currency, callback_url)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `, [data.title, data.description, data.category, data.publisher_type, data.publisher_id, data.location, data.reward, data.currency || 'cny', data.callback_url]);
+    `, [data.title, data.description, data.category, data.publisher_type, data.publisher_id, data.location || null, data.reward, currency, data.callback_url || null]);
     const result = db.exec('SELECT last_insert_rowid() as id');
     saveDB();
     return { lastInsertRowid: result[0]?.values[0]?.[0] };

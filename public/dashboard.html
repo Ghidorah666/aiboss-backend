@@ -22,6 +22,7 @@
           <li><a href="api.html" data-i18n="nav_api">API文档</a></li>
         </ul>
         <div class="header-actions">
+          <a href="auth.html" class="btn btn-primary btn-sm" id="login-btn">登录</a>
           <div class="lang-switch">
             <button class="lang-btn active" data-lang="cn">中文</button>
             <button class="lang-btn" data-lang="en">EN</button>
@@ -31,24 +32,30 @@
     </div>
   </header>
 
-  <!-- Main Content -->
-  <section class="section" style="padding-top: calc(var(--header-height) + var(--space-xl));">
+  <!-- Loading State -->
+  <div id="loading-state" class="section" style="padding-top: calc(var(--header-height) + var(--space-xl));">
+    <div class="container text-center">
+      <p>加载中...</p>
+    </div>
+  </div>
+
+  <!-- Main Content (hidden until loaded) -->
+  <section id="main-content" class="section" style="padding-top: calc(var(--header-height) + var(--space-xl)); display: none;">
     <div class="container">
       <!-- User Profile Header -->
       <div class="card" style="margin-bottom: var(--space-xl);">
         <div class="card-body" style="display: flex; align-items: center; gap: var(--space-xl);">
-          <div style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem; font-weight: 700;">
-            徐
+          <div id="avatar" style="width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-size: 2rem; font-weight: 700;">
+            ?
           </div>
           <div style="flex: 1;">
-            <h2 style="margin-bottom: var(--space-xs);">徐清智</h2>
-            <p style="color: var(--text-secondary); margin-bottom: var(--space-sm);">AI打工者 · 加入于 2026年3月</p>
-            <div style="display: flex; gap: var(--space-lg);">
-              <span class="badge badge-success">✓ 已认证</span>
-              <span class="badge badge-primary">📧 已绑定邮箱</span>
+            <h2 id="user-name" style="margin-bottom: var(--space-xs);">-</h2>
+            <p id="user-info" style="color: var(--text-secondary); margin-bottom: var(--space-sm);">-</p>
+            <div id="user-badges" style="display: flex; gap: var(--space-lg);">
+              <!-- Dynamic badges -->
             </div>
           </div>
-          <button class="btn btn-secondary">编辑资料</button>
+          <button class="btn btn-secondary" onclick="showEditProfile()">编辑资料</button>
         </div>
       </div>
 
@@ -56,76 +63,40 @@
       <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: var(--space-lg); margin-bottom: var(--space-xl);">
         <div class="card">
           <div class="card-body text-center">
-            <div style="font-size: 2rem; font-weight: 700; color: var(--primary);">128</div>
+            <div id="stat-tasks" style="font-size: 2rem; font-weight: 700; color: var(--primary);">0</div>
             <div style="color: var(--text-secondary); font-size: 0.9375rem;">已完成任务</div>
           </div>
         </div>
         <div class="card">
           <div class="card-body text-center">
-            <div style="font-size: 2rem; font-weight: 700; color: var(--success);">¥ 2,580</div>
-            <div style="color: var(--text-secondary); font-size: 0.9375rem;">累计收益 (CNY)</div>
+            <div id="stat-cny" style="font-size: 2rem; font-weight: 700; color: var(--success);">¥ 0</div>
+            <div style="color: var(--text-secondary); font-size: 0.9375rem;">人民币余额</div>
           </div>
         </div>
         <div class="card">
           <div class="card-body text-center">
-            <div style="font-size: 2rem; font-weight: 700; color: var(--accent);">156 USDC</div>
-            <div style="color: var(--text-secondary); font-size: 0.9375rem;">累计收益 (USDC)</div>
+            <div id="stat-usdc" style="font-size: 2rem; font-weight: 700; color: var(--secondary);">0 USDC</div>
+            <div style="color: var(--text-secondary); font-size: 0.9375rem;">USDC余额</div>
           </div>
         </div>
         <div class="card">
           <div class="card-body text-center">
-            <div style="font-size: 2rem; font-weight: 700; color: var(--secondary);">23</div>
-            <div style="color: var(--text-secondary); font-size: 0.9375rem;">连续签到天数</div>
+            <div id="stat-joined" style="font-size: 2rem; font-weight: 700; color: var(--accent);">-</div>
+            <div style="color: var(--text-secondary); font-size: 0.9375rem;">注册天数</div>
           </div>
         </div>
       </div>
 
       <!-- Tabs -->
       <div class="tabs" style="margin-bottom: var(--space-lg);">
-        <button class="tab active">进行中</button>
-        <button class="tab">已完成</button>
-        <button class="tab">我发布的</button>
+        <button class="tab active" onclick="showTab('accepted')">我接的任务</button>
+        <button class="tab" onclick="showTab('completed')">已完成</button>
+        <button class="tab" onclick="showTab('published')">我发布的</button>
       </div>
 
       <!-- Task List -->
-      <div class="tasks-grid">
-        <div class="task-card" style="cursor: default;">
-          <div class="task-header">
-            <div class="task-type">🏠 到场签到</div>
-            <span class="badge badge-warning">进行中</span>
-          </div>
-          <div class="task-body">
-            <h3 class="task-title">星巴克门店拍照签到</h3>
-            <p class="task-desc">到指定星巴克门店拍照签到</p>
-            <div class="task-meta">
-              <span>📍 北京朝阳</span>
-              <span>⏱️ 5分钟</span>
-            </div>
-          </div>
-          <div class="task-footer">
-            <div class="task-reward">💴 8 CNY</div>
-            <button class="btn btn-primary btn-sm" onclick="alert('任务完成！报酬已到账。')">确认完成</button>
-          </div>
-        </div>
-
-        <div class="task-card" style="cursor: default;">
-          <div class="task-header">
-            <div class="task-type">📝 执行任务</div>
-            <span class="badge badge-success">已完成</span>
-          </div>
-          <div class="task-body">
-            <h3 class="task-title">APP连续签到7天</h3>
-            <p class="task-desc">完成某APP连续7天签到</p>
-            <div class="task-meta">
-              <span>📍 远程</span>
-              <span>⏱️ 7天</span>
-            </div>
-          </div>
-          <div class="task-footer">
-            <div class="task-reward">💴 15 CNY</div>
-            <span style="color: var(--success); font-size: 0.875rem;">✓ 已到账</span>
-          </div>
-        </div>
+      <div id="task-list" class="tasks-grid">
+        <p class="text-center" style="color: var(--text-secondary); padding: var(--space-xl);">暂无任务</p>
       </div>
 
       <!-- Wallet Section -->
@@ -138,16 +109,16 @@
                 <span style="font-weight: 600;">人民币余额</span>
                 <span class="badge badge-success">可提现</span>
               </div>
-              <div style="font-size: 2rem; font-weight: 700; color: var(--success);">¥ 580.00</div>
-              <button class="btn btn-primary btn-sm" style="margin-top: var(--space-md);">提现</button>
+              <div id="wallet-cny" style="font-size: 2rem; font-weight: 700; color: var(--success);">¥ 0.00</div>
+              <button class="btn btn-primary btn-sm" style="margin-top: var(--space-md);" onclick="alert('提现功能开发中')">提现</button>
             </div>
             <div style="padding: var(--space-lg); background: linear-gradient(135deg, rgba(88,86,214,0.1), rgba(0,122,255,0.1)); border-radius: var(--radius-lg);">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-md);">
                 <span style="font-weight: 600;">USDC余额</span>
                 <span class="badge badge-purple">区块链</span>
               </div>
-              <div style="font-size: 2rem; font-weight: 700; color: var(--secondary);">156.00 USDC</div>
-              <button class="btn btn-outline btn-sm" style="margin-top: var(--space-md);">转账</button>
+              <div id="wallet-usdc" style="font-size: 2rem; font-weight: 700; color: var(--secondary);">0.00 USDC</div>
+              <button class="btn btn-outline btn-sm" style="margin-top: var(--space-md);" onclick="alert('USDC转账功能开发中')">转账</button>
             </div>
           </div>
         </div>
@@ -166,11 +137,220 @@
 
   <script src="js/main.js"></script>
   <script>
-    document.querySelectorAll('.tab').forEach(tab => {
-      tab.addEventListener('click', () => {
-        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-        tab.classList.add('active');
+    const API_BASE = '/api';
+    let currentUser = null;
+    let currentTab = 'accepted';
+    
+    // 获取token
+    function getToken() {
+      return localStorage.getItem('aiboss_token');
+    }
+    
+    // 获取用户信息
+    function getUser() {
+      const userStr = localStorage.getItem('aiboss_user');
+      return userStr ? JSON.parse(userStr) : null;
+    }
+    
+    // 检查登录状态
+    function checkAuth() {
+      const token = getToken();
+      const user = getUser();
+      
+      if (!token || !user) {
+        // 未登录，跳转登录页
+        window.location.href = 'auth.html?redirect=' + encodeURIComponent(window.location.href);
+        return false;
+      }
+      
+      return { token, user };
+    }
+    
+    // API请求
+    async function api(endpoint, options = {}) {
+      const token = getToken();
+      const response = await fetch(`${API_BASE}${endpoint}`, {
+        ...options,
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+          ...options.headers
+        }
       });
+      
+      const data = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(data.error || '请求失败');
+      }
+      
+      return data;
+    }
+    
+    // 加载用户数据
+    async function loadUserData() {
+      try {
+        // 获取当前用户信息
+        const userData = await api('/auth/me');
+        currentUser = userData.user;
+        
+        // 更新页面
+        updateUserUI(currentUser);
+        
+        // 加载任务数据
+        loadTasks();
+        
+        // 显示主内容
+        document.getElementById('loading-state').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+        
+      } catch (error) {
+        console.error('加载失败:', error);
+        if (error.message === '未登录' || error.message === '登录已过期') {
+          // token过期，清除并跳转
+          localStorage.removeItem('aiboss_token');
+          localStorage.removeItem('aiboss_user');
+          window.location.href = 'auth.html?redirect=' + encodeURIComponent(window.location.href);
+        }
+      }
+    }
+    
+    // 更新用户界面
+    function updateUserUI(user) {
+      // 名字和头像
+      document.getElementById('user-name').textContent = user.nickname || user.username;
+      document.getElementById('avatar').textContent = (user.nickname || user.username).charAt(0).toUpperCase();
+      
+      // 用户信息
+      const joinDate = new Date(user.created_at).toLocaleDateString('zh-CN');
+      document.getElementById('user-info').textContent = `AI打工者 · 加入于 ${joinDate}`;
+      
+      // 余额
+      document.getElementById('stat-cny').textContent = `¥ ${(user.balance_cny || 0).toFixed(0)}`;
+      document.getElementById('stat-usdc').textContent = `${(user.balance_usdc || 0).toFixed(2)} USDC`;
+      document.getElementById('wallet-cny').textContent = `¥ ${(user.balance_cny || 0).toFixed(2)}`;
+      document.getElementById('wallet-usdc').textContent = `${(user.balance_usdc || 0).toFixed(2)} USDC`;
+      
+      // 注册天数
+      const created = new Date(user.created_at);
+      const now = new Date();
+      const days = Math.floor((now - created) / (1000 * 60 * 60 * 24));
+      document.getElementById('stat-joined').textContent = days;
+      
+      // 更新登录按钮
+      const loginBtn = document.getElementById('login-btn');
+      loginBtn.textContent = user.nickname || user.username;
+      loginBtn.href = '#';
+      loginBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        if (confirm('确定要退出登录吗？')) {
+          localStorage.removeItem('aiboss_token');
+          localStorage.removeItem('aiboss_user');
+          window.location.reload();
+        }
+      });
+    }
+    
+    // 加载任务列表
+    async function loadTasks() {
+      try {
+        let data;
+        if (currentTab === 'published') {
+          data = await api('/tasks/my/published');
+        } else {
+          data = await api('/tasks/my/accepted');
+        }
+        
+        const tasks = currentTab === 'published' ? data.tasks : data.records;
+        renderTasks(tasks);
+        
+      } catch (error) {
+        console.error('加载任务失败:', error);
+      }
+    }
+    
+    // 渲染任务列表
+    function renderTasks(tasks) {
+      const container = document.getElementById('task-list');
+      
+      if (!tasks || tasks.length === 0) {
+        container.innerHTML = `<p class="text-center" style="color: var(--text-secondary); padding: var(--space-xl);">暂无任务</p>`;
+        return;
+      }
+      
+      const html = tasks.map(task => {
+        const statusMap = {
+          'accepted': '<span class="badge badge-warning">进行中</span>',
+          'completed': '<span class="badge badge-success">已完成</span>',
+          'active': '<span class="badge badge-success">进行中</span>',
+          'pending': '<span class="badge badge-secondary">待支付</span>'
+        };
+        
+        const status = task.status || (task.id ? 'accepted' : 'pending');
+        const title = task.title || task.trade_no || '任务';
+        const reward = task.reward || 0;
+        const location = task.location || '远程';
+        const currency = task.currency === 'usdc' ? 'USDC' : 'CNY';
+        
+        return `
+          <div class="task-card" style="cursor: default;">
+            <div class="task-header">
+              <div class="task-type">📋 任务</div>
+              ${statusMap[status] || statusMap['pending']}
+            </div>
+            <div class="task-body">
+              <h3 class="task-title">${title}</h3>
+              <p class="task-desc">${task.description || task.notes || '-'}</p>
+              <div class="task-meta">
+                <span>📍 ${location}</span>
+              </div>
+            </div>
+            <div class="task-footer">
+              <div class="task-reward">💴 ${reward} ${currency}</div>
+              ${status === 'completed' ? '<span style="color: var(--success);">✓ 已完成</span>' : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+      
+      container.innerHTML = html;
+    }
+    
+    // Tab切换
+    function showTab(tab) {
+      currentTab = tab;
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      event.target.classList.add('active');
+      loadTasks();
+    }
+    
+    // 编辑资料弹窗
+    function showEditProfile() {
+      const user = currentUser;
+      const nickname = prompt('请输入新昵称:', user.nickname || '');
+      const phone = prompt('请输入手机号:', user.phone || '');
+      
+      if (nickname !== null) {
+        api('/auth/profile', {
+          method: 'PUT',
+          body: JSON.stringify({ nickname, phone })
+        }).then(() => {
+          alert('更新成功！');
+          loadUserData();
+        }).catch(err => {
+          alert('更新失败: ' + err.message);
+        });
+      }
+    }
+    
+    // 页面加载
+    document.addEventListener('DOMContentLoaded', () => {
+      // 检查登录
+      const auth = checkAuth();
+      if (!auth) return;
+      
+      // 加载数据
+      loadUserData();
     });
   </script>
 </body>

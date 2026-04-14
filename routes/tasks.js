@@ -47,8 +47,10 @@ router.post('/', requireAuth, (req, res) => {
     }
 
     // 计算平台费用
-    const fee = reward * 0.05;
-    const total = reward + fee;
+    const fee = parseFloat(reward) * 0.05;
+    const total = parseFloat(reward) + fee;
+
+    console.log('创建任务:', { title, description, category, publisher_id: parseInt(req.user.userId), location, reward: parseFloat(reward), currency });
 
     // 创建任务（待支付状态）
     const result = taskOps.create({
@@ -56,12 +58,14 @@ router.post('/', requireAuth, (req, res) => {
       description,
       category,
       publisher_type: 'human',
-      publisher_id: req.user.userId,
+      publisher_id: parseInt(req.user.userId),
       location,
-      reward,
+      reward: parseFloat(reward),
       currency: currency || 'cny',
       callback_url
     });
+
+    console.log('创建结果:', result);
 
     res.status(201).json({
       message: '任务创建成功，请先支付',
@@ -75,7 +79,7 @@ router.post('/', requireAuth, (req, res) => {
     });
   } catch (error) {
     console.error('发布任务错误:', error);
-    res.status(500).json({ error: '发布失败' });
+    res.status(500).json({ error: '发布失败: ' + error.message });
   }
 });
 
