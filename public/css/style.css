@@ -1294,6 +1294,225 @@ textarea.form-input {
 .hidden { display: none !important; }
 .visible { display: block !important; }
 
+/* ============================================
+   Dashboard
+   ============================================ */
+.dashboard-page {
+  padding-top: calc(var(--header-height) + var(--space-xl));
+}
+
+.dashboard-loading {
+  padding: var(--space-3xl) 0;
+  color: var(--text-secondary);
+}
+
+.dashboard-shell,
+.wallet-panel,
+.orders-panel {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.dashboard-shell {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-lg);
+  padding: var(--space-xl);
+  margin-bottom: var(--space-xl);
+}
+
+.dashboard-profile {
+  display: flex;
+  align-items: center;
+  gap: var(--space-lg);
+  min-width: 0;
+}
+
+.dashboard-profile h1 {
+  font-size: 1.75rem;
+  margin-bottom: var(--space-xs);
+}
+
+.dashboard-profile p,
+.wallet-panel p {
+  color: var(--text-secondary);
+}
+
+.dashboard-avatar {
+  width: 72px;
+  height: 72px;
+  flex: 0 0 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, var(--primary), #00D4FF);
+  border-radius: 50%;
+  color: white;
+  font-size: 1.75rem;
+  font-weight: 700;
+}
+
+.dashboard-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-sm);
+  margin-top: var(--space-sm);
+}
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.stat-card {
+  padding: var(--space-lg);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+}
+
+.stat-card span {
+  display: block;
+  margin-bottom: var(--space-sm);
+  color: var(--text-secondary);
+  font-size: 0.875rem;
+}
+
+.stat-card strong {
+  display: block;
+  font-size: 1.5rem;
+  line-height: 1.2;
+}
+
+.wallet-grid {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: var(--space-md);
+  margin-bottom: var(--space-xl);
+}
+
+.wallet-panel {
+  padding: var(--space-xl);
+}
+
+.wallet-panel h2 {
+  font-size: 1.25rem;
+  margin-bottom: var(--space-sm);
+}
+
+.recharge-form {
+  display: flex;
+  gap: var(--space-sm);
+  margin-top: var(--space-lg);
+}
+
+.recharge-form .form-input {
+  min-width: 0;
+}
+
+.dashboard-tabs {
+  overflow-x: auto;
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  padding: var(--space-2xl);
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.orders-panel {
+  grid-column: 1 / -1;
+  overflow-x: auto;
+}
+
+.orders-head,
+.orders-row {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.5fr) minmax(100px, 0.8fr) minmax(88px, 0.7fr) minmax(160px, 1fr) minmax(108px, 0.7fr);
+  gap: var(--space-md);
+  align-items: center;
+  min-width: 760px;
+  padding: var(--space-md) var(--space-lg);
+}
+
+.orders-head {
+  color: var(--text-secondary);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.orders-row + .orders-row {
+  border-top: 1px solid var(--border-color);
+}
+
+.mono {
+  font-family: "SF Mono", Monaco, Consolas, "Courier New", monospace;
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+}
+
+.app-toast {
+  position: fixed;
+  top: calc(var(--header-height) + var(--space-md));
+  left: 50%;
+  z-index: 2000;
+  max-width: min(520px, calc(100vw - 32px));
+  transform: translateX(-50%);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-md);
+}
+
+@media (max-width: 900px) {
+  .dashboard-stats,
+  .wallet-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-shell,
+  .dashboard-profile,
+  .recharge-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dashboard-profile {
+    text-align: center;
+  }
+
+  .dashboard-avatar {
+    align-self: center;
+  }
+
+  .dashboard-stats,
+  .wallet-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .stat-card strong {
+    font-size: 1.25rem;
+  }
+
+  .tabs {
+    white-space: nowrap;
+  }
+}
+
 /* i18n */
 [lang="en"] .cn-only { display: none; }
 [lang="cn"] .en-only { display: none; }

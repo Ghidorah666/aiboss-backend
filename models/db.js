@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 const DB_PATH = path.join(__dirname, '..', 'data', 'aiboss.db');
+const BACKUP_DIR = process.env.DB_BACKUP_DIR || path.join(__dirname, '..', 'data', 'backups');
 
 // 确保data目录存在
 const dataDir = path.dirname(DB_PATH);
@@ -107,6 +108,21 @@ function saveDB() {
   }
 }
 
+function backupDB() {
+  if (!fs.existsSync(DB_PATH)) {
+    return null;
+  }
+
+  if (!fs.existsSync(BACKUP_DIR)) {
+    fs.mkdirSync(BACKUP_DIR, { recursive: true });
+  }
+
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const backupPath = path.join(BACKUP_DIR, `aiboss-${stamp}.db`);
+  fs.copyFileSync(DB_PATH, backupPath);
+  return backupPath;
+}
+
 function getDB() {
   return db;
 }
@@ -189,6 +205,10 @@ const taskOps = {
       sql += ' AND t.publisher_type = ?';
       params.push(filters.publisher_type);
     }
+    if (filters.publisher_id) {
+      sql += ' AND t.publisher_id = ?';
+      params.push(filters.publisher_id);
+    }
     
     sql += ' ORDER BY t.created_at DESC LIMIT ? OFFSET ?';
     params.push(filters.limit || 50, filters.offset || 0);
@@ -210,8 +230,8 @@ const taskOps = {
 
 // 订单操作
 const orderOps = {
-  create: (orderNo, userId, amount, currency) => {
-    db.run('INSERT INTO orders (order_no, user_id, amount, currency) VALUES (?, ?, ?, ?)', [orderNo, userId, amount, currency]);
+  create: (orderNo, userId, amount, currency, taskId = null) => {
+    db.run('INSERT INTO orders (order_no, user_id, task_id, amount, currency) VALUES (?, ?, ?, ?, ?)', [orderNo, userId, taskId, amount, currency]);
     const result = db.exec('SELECT last_insert_rowid() as id');
     saveDB();
     return { lastInsertRowid: result[0]?.values[0]?.[0] };
@@ -274,6 +294,7 @@ module.exports = {
   initDB,
   getDB,
   saveDB,
+  backupDB,
   userOps,
   taskOps,
   orderOps,

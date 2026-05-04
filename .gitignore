@@ -3,6 +3,7 @@ node_modules/
 
 # 数据库文件（包含用户数据，不应上传）
 data/*.db
+data/backups/
 
 # 环境变量
 .env
