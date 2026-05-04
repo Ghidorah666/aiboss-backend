@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { taskOps, recordOps, userOps, orderOps } = require('../models/db');
+const { taskOps, recordOps, userOps, orderOps, notificationOps } = require('../models/db');
 const { requireAuth } = require('./auth');
 
 // ========== 任务列表 ==========
@@ -136,6 +136,15 @@ router.post('/:id/accept', requireAuth, (req, res) => {
     const result = recordOps.accept(taskId, workerId);
     taskOps.incrementAcceptedCount(taskId);
 
+    // 通知发布者：有人接了你的任务
+    notificationOps.create(
+      task.publisher_id,
+      'task_accepted',
+      '任务已被接单',
+      `你的任务「${task.title}」已被工作者接单`,
+      `task.html?id=${taskId}`
+    );
+
     return res.status(201).json({
       message: 'Task accepted successfully',
       record: { id: result.lastInsertRowid, task_id: taskId, status: 'accepted' }
@@ -169,6 +178,15 @@ router.post('/:id/complete', requireAuth, (req, res) => {
 
     // 更新任务状态为submitted
     taskOps.updateStatus(taskId, 'submitted');
+
+    // 通知发布者：工作者提交了完成证明
+    notificationOps.create(
+      task.publisher_id,
+      'task_submitted',
+      '任务待审核',
+      `工作者已提交「${task.title}」的完成证明，请审核`,
+      `task.html?id=${taskId}`
+    );
 
     return res.json({ message: 'Completion proof submitted, waiting for publisher review' });
   } catch (error) {
@@ -207,6 +225,15 @@ router.post('/:id/confirm', requireAuth, (req, res) => {
     // 给接单者打款（增加余额）
     userOps.updateBalance(submittedRecord.worker_id, task.reward, task.currency || 'cny');
 
+    // 通知工作者：审核通过，已打款
+    notificationOps.create(
+      submittedRecord.worker_id,
+      'task_confirmed',
+      '审核通过，已打款',
+      `你完成的任务「${task.title}」已审核通过，¥${task.reward} 已到账`,
+      `task.html?id=${taskId}`
+    );
+
     return res.json({
       message: `Task confirmed. Worker paid ¥${task.reward}`,
       reward: task.reward,
@@ -244,6 +271,15 @@ router.post('/:id/reject', requireAuth, (req, res) => {
 
     // 任务恢复为active，等工作者重新提交
     taskOps.updateStatus(taskId, 'accepted');
+
+    // 通知工作者：审核被拒绝
+    notificationOps.create(
+      submittedRecord.worker_id,
+      'task_rejected',
+      '审核被拒绝',
+      `你提交的任务「${task.title}」审核被拒绝${reason ? '：' + reason : ''}，请重新提交`,
+      `task.html?id=${taskId}`
+    );
 
     return res.json({
       message: 'Submission rejected. Worker can re-submit.',

@@ -3,7 +3,7 @@ const router = express.Router();
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
-const { orderOps, taskOps, userOps, withdrawOps } = require('../models/db');
+const { orderOps, taskOps, userOps, withdrawOps, notificationOps } = require('../models/db');
 const { requireAuth } = require('./auth');
 
 const ALIPAY_CONFIG = {
@@ -437,6 +437,15 @@ router.post('/admin/withdrawals/:withdrawNo/approve', requireAuth, (req, res) =>
     // 扣减冻结余额
     userOps.unfreezeBalance(withdrawal.user_id, withdrawal.amount);
 
+    // 通知用户：提现已审核通过
+    notificationOps.create(
+      withdrawal.user_id,
+      'withdraw_approved',
+      '提现审核通过',
+      `你的提现申请 ¥${withdrawal.amount} 已审核通过，等待打款`,
+      'dashboard.html'
+    );
+
     return res.json({ message: 'Withdrawal approved. Please process payout manually.', withdrawal: { ...withdrawal, status: 'approved' } });
   } catch (error) {
     console.error('Approve withdrawal error:', error);
@@ -461,6 +470,15 @@ router.post('/admin/withdrawals/:withdrawNo/reject', requireAuth, (req, res) => 
     userOps.updateBalance(withdrawal.user_id, withdrawal.amount, 'cny');
     userOps.unfreezeBalance(withdrawal.user_id, -withdrawal.amount); // 减少冻结
 
+    // 通知用户：提现被拒绝
+    notificationOps.create(
+      withdrawal.user_id,
+      'withdraw_rejected',
+      '提现被拒绝',
+      `你的提现申请 ¥${withdrawal.amount} 被拒绝${reason ? '：' + reason : ''}，余额已退还`,
+      'dashboard.html'
+    );
+
     return res.json({ message: 'Withdrawal rejected. Balance refunded.', withdrawal: { ...withdrawal, status: 'rejected' } });
   } catch (error) {
     console.error('Reject withdrawal error:', error);
@@ -480,6 +498,15 @@ router.post('/admin/withdrawals/:withdrawNo/paid', requireAuth, (req, res) => {
     }
 
     withdrawOps.markPaid(withdrawal.withdraw_no);
+
+    // 通知用户：已打款
+    notificationOps.create(
+      withdrawal.user_id,
+      'withdraw_paid',
+      '提现已打款',
+      `你的提现申请 ¥${withdrawal.amount} 已打款到支付宝，请查收`,
+      'dashboard.html'
+    );
 
     return res.json({ message: 'Withdrawal marked as paid.', withdrawal: { ...withdrawal, status: 'paid' } });
   } catch (error) {

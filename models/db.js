@@ -120,6 +120,19 @@ async function initDB() {
     )
   `);
 
+  db.run(`
+    CREATE TABLE IF NOT EXISTS notifications (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      user_id INTEGER NOT NULL,
+      type TEXT NOT NULL,
+      title TEXT NOT NULL,
+      body TEXT,
+      link TEXT,
+      is_read INTEGER DEFAULT 0,
+      created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )
+  `);
+
   // ========== 索引 ==========
   db.run(`CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_tasks_publisher ON tasks(publisher_id)`);
@@ -129,6 +142,8 @@ async function initDB() {
   db.run(`CREATE INDEX IF NOT EXISTS idx_task_records_task ON task_records(task_id)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_task_records_worker ON task_records(worker_id)`);
   db.run(`CREATE INDEX IF NOT EXISTS idx_withdrawals_user ON withdrawals(user_id)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id)`);
+  db.run(`CREATE INDEX IF NOT EXISTS idx_notifications_read ON notifications(user_id, is_read)`);
 
   // 安全地添加新列（如果不存在则添加，已存在则忽略）
   const migrations = [
@@ -441,6 +456,42 @@ const withdrawOps = {
   }
 };
 
+// ========== 通知操作 ==========
+const notificationOps = {
+  create: (userId, type, title, body, link) => {
+    db.run('INSERT INTO notifications (user_id, type, title, body, link) VALUES (?, ?, ?, ?, ?)',
+      [userId, type, title, body || null, link || null]);
+    const result = db.exec('SELECT last_insert_rowid() as id');
+    saveDB();
+    return { lastInsertRowid: result[0]?.values[0]?.[0] };
+  },
+
+  findByUser: (userId, limit = 50) => {
+    const result = db.exec('SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC LIMIT ?', [userId, limit]);
+    return rowsToArray(result);
+  },
+
+  findUnread: (userId) => {
+    const result = db.exec('SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC', [userId]);
+    return rowsToArray(result);
+  },
+
+  countUnread: (userId) => {
+    const result = db.exec('SELECT COUNT(*) as cnt FROM notifications WHERE user_id = ? AND is_read = 0', [userId]);
+    return result[0]?.values[0]?.[0] || 0;
+  },
+
+  markRead: (id) => {
+    db.run('UPDATE notifications SET is_read = 1 WHERE id = ?', [id]);
+    saveDB();
+  },
+
+  markAllRead: (userId) => {
+    db.run('UPDATE notifications SET is_read = 1 WHERE user_id = ? AND is_read = 0', [userId]);
+    saveDB();
+  }
+};
+
 module.exports = {
   initDB,
   getDB,
@@ -450,5 +501,6 @@ module.exports = {
   taskOps,
   orderOps,
   recordOps,
-  withdrawOps
+  withdrawOps,
+  notificationOps
 };

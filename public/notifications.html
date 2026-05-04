@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="cn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的通知 - AIBoss</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .notif-page-item {
+      display: flex;
+      gap: 12px;
+      padding: 16px;
+      border-bottom: 1px solid var(--border-color, #2a2a3e);
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .notif-page-item:hover { background: rgba(255,255,255,0.04); }
+    .notif-page-item.unread { background: rgba(0,122,255,0.06); }
+    .notif-page-icon { font-size: 1.5rem; flex-shrink: 0; width: 36px; text-align: center; }
+    .notif-page-content { flex: 1; }
+    .notif-page-title { font-weight: 600; margin-bottom: 4px; }
+    .notif-page-body { color: var(--text-secondary, #a0a0b0); font-size: 0.9375rem; line-height: 1.5; }
+    .notif-page-time { color: var(--text-tertiary, #666); font-size: 0.8125rem; margin-top: 6px; }
+    .notif-page-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-lg); }
+  </style>
+</head>
+<body>
+  <header class="header"></header>
+
+  <section class="section" style="padding-top: calc(var(--header-height) + var(--space-xl));">
+    <div class="container" style="max-width: 700px;">
+      <div class="notif-page-actions">
+        <h1>🔔 我的通知</h1>
+        <button class="btn btn-secondary btn-sm" onclick="markAllRead()">全部标记已读</button>
+      </div>
+
+      <div id="loading" class="text-center" style="padding: var(--space-3xl);">加载中...</div>
+
+      <div id="notif-container" style="display: none;">
+        <div id="notif-list"></div>
+        <div id="notif-empty" class="text-center" style="padding: var(--space-3xl); display: none; color: var(--text-tertiary);">
+          暂无通知
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom" style="border-top: none; padding-top: 0;">
+        <span>© 2026 AIBoss</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/header.js"></script>
+  <script>
+    let allNotifications = [];
+
+    function escapeHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function timeAgo(dateStr) {
+      const diff = Date.now() - new Date(dateStr).getTime();
+      const mins = Math.floor(diff / 60000);
+      if (mins < 1) return '刚刚';
+      if (mins < 60) return `${mins}分钟前`;
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return `${hours}小时前`;
+      const days = Math.floor(hours / 24);
+      return `${days}天前`;
+    }
+
+    const typeIcons = {
+      'task_accepted': '🤝', 'task_submitted': '📤', 'task_confirmed': '✅',
+      'task_rejected': '❌', 'withdraw_approved': '✅', 'withdraw_rejected': '❌',
+      'withdraw_paid': '💰'
+    };
+
+    async function loadNotifications() {
+      try {
+        const data = await AIBossAPI.notifications.list(100);
+        allNotifications = data.notifications || [];
+        renderNotifications(allNotifications);
+        document.getElementById('loading').style.display = 'none';
+        document.getElementById('notif-container').style.display = 'block';
+      } catch(err) {
+        document.getElementById('loading').innerHTML = `<p style="color:#FF3B30;">加载失败: ${escapeHtml(err.message)}</p>`;
+      }
+    }
+
+    function renderNotifications(items) {
+      const list = document.getElementById('notif-list');
+      const empty = document.getElementById('notif-empty');
+      if (!items.length) {
+        list.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+      }
+      empty.style.display = 'none';
+      list.style.display = 'block';
+      list.innerHTML = items.map(n => {
+        const icon = typeIcons[n.type] || '📌';
+        const unreadClass = n.is_read ? '' : ' unread';
+        return `
+          <div class="notif-page-item${unreadClass}" onclick="clickNotif(${n.id}, '${escapeHtml(n.link || '')}')">
+            <span class="notif-page-icon">${icon}</span>
+            <div class="notif-page-content">
+              <div class="notif-page-title">${escapeHtml(n.title)}</div>
+              <div class="notif-page-body">${escapeHtml(n.body || '')}</div>
+              <div class="notif-page-time">${timeAgo(n.created_at)}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function clickNotif(id, link) {
+      try { await AIBossAPI.notifications.markRead(id); } catch(e) {}
+      if (link) window.location.href = link;
+    }
+
+    async function markAllRead() {
+      try {
+        await AIBossAPI.notifications.markAllRead();
+        await loadNotifications();
+      } catch(e) { alert(e.message); }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!AIBossAPI.isLoggedIn()) {
+        window.location.href = 'auth.html';
+        return;
+      }
+      loadNotifications();
+    });
+  </script>
+</body>
+</html>

@@ -211,6 +211,29 @@ const paymentAPI = {
   }
 };
 
+// 通知API
+const notificationAPI = {
+  // 获取通知列表
+  async list(limit = 50) {
+    return api(`/notifications?limit=${limit}`);
+  },
+  
+  // 获取未读数量
+  async unreadCount() {
+    return api('/notifications/unread-count');
+  },
+  
+  // 标记单条已读
+  async markRead(id) {
+    return api(`/notifications/${id}/read`, { method: 'POST' });
+  },
+  
+  // 全部标记已读
+  async markAllRead() {
+    return api('/notifications/read-all', { method: 'POST' });
+  }
+};
+
 // 页面初始化：检查登录状态
 function requireAuth() {
   if (!isLoggedIn()) {
@@ -246,6 +269,7 @@ window.AIBossAPI = {
   auth: authAPI,
   tasks: taskAPI,
   payment: paymentAPI,
+  notifications: notificationAPI,
   isLoggedIn,
   getUser,
   requireAuth,
