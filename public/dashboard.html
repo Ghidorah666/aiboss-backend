@@ -5,6 +5,21 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>个人中心 - AIBoss</title>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .withdraw-form { display: flex; gap: var(--space-md); align-items: flex-start; flex-wrap: wrap; }
+    .withdraw-form .form-input { flex: 1; min-width: 120px; }
+    .stat-card.warn { border-left: 3px solid var(--warning, #f59e0b); }
+    .review-actions { display: flex; gap: var(--space-sm); margin-top: var(--space-sm); }
+    .review-actions .btn { font-size: 0.8125rem; padding: 6px 12px; }
+    .proof-block { background: var(--bg-secondary, #1a1a2e); border-radius: var(--radius-md, 8px); padding: var(--space-md, 12px); margin-top: var(--space-sm, 8px); font-size: 0.875rem; color: var(--text-secondary, #a0a0b0); }
+    .proof-block strong { color: var(--text-primary, #e0e0e8); }
+    .orders-panel { overflow-x: auto; }
+    .orders-head, .orders-row { display: grid; grid-template-columns: 1.5fr 1fr 0.8fr 1.2fr 1fr; gap: var(--space-sm, 8px); align-items: center; min-width: 600px; }
+    .orders-head { font-weight: 600; font-size: 0.8125rem; color: var(--text-secondary, #a0a0b0); padding-bottom: var(--space-sm, 8px); border-bottom: 1px solid var(--border-color, #2a2a3e); }
+    .orders-row { padding: var(--space-sm, 8px) 0; border-bottom: 1px solid var(--border-color, #2a2a3e); font-size: 0.875rem; }
+    .mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.75rem; }
+    .empty-state { text-align: center; padding: var(--space-3xl, 48px); color: var(--text-tertiary, #666); }
+  </style>
 </head>
 <body>
   <header class="header"></header>
@@ -33,12 +48,12 @@
 
         <section class="dashboard-stats">
           <div class="stat-card">
-            <span>人民币余额</span>
+            <span>可用余额</span>
             <strong id="stat-cny">¥ 0.00</strong>
           </div>
-          <div class="stat-card">
-            <span>USDC 余额</span>
-            <strong id="stat-usdc">0.00 USDC</strong>
+          <div class="stat-card warn">
+            <span>冻结余额</span>
+            <strong id="stat-frozen">¥ 0.00</strong>
           </div>
           <div class="stat-card">
             <span>已接任务</span>
@@ -64,15 +79,19 @@
           <div class="wallet-panel">
             <h2>提现</h2>
             <p>提现请求会先进入人工审核，避免错付和重复付款。</p>
-            <button class="btn btn-outline" onclick="requestWithdraw()">申请提现</button>
+            <form id="withdraw-form" class="withdraw-form">
+              <input class="form-input" type="number" name="amount" min="1" step="0.01" placeholder="提现金额">
+              <input class="form-input" type="text" name="alipay_id" placeholder="支付宝账号" id="withdraw-alipay">
+              <button class="btn btn-outline" type="submit">申请提现</button>
+            </form>
           </div>
         </section>
 
         <section class="tabs dashboard-tabs">
           <button class="tab active" data-tab="accepted" onclick="showTab('accepted', this)">我接的任务</button>
-          <button class="tab" data-tab="completed" onclick="showTab('completed', this)">已完成</button>
           <button class="tab" data-tab="published" onclick="showTab('published', this)">我发布的</button>
           <button class="tab" data-tab="orders" onclick="showTab('orders', this)">交易记录</button>
+          <button class="tab" data-tab="withdrawals" onclick="showTab('withdrawals', this)">提现记录</button>
         </section>
 
         <section id="task-list" class="tasks-grid"></section>
@@ -97,10 +116,9 @@
     let acceptedRecords = [];
     let publishedTasks = [];
     let orders = [];
+    let withdrawals = [];
 
-    function getToken() {
-      return localStorage.getItem('aiboss_token');
-    }
+    function getToken() { return localStorage.getItem('aiboss_token'); }
 
     function requireLogin() {
       if (!getToken()) {
@@ -113,17 +131,11 @@
     async function api(endpoint, options = {}) {
       const response = await fetch(`${API_BASE}${endpoint}`, {
         ...options,
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${getToken()}`,
-          ...options.headers
-        }
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}`, ...options.headers }
       });
       const contentType = response.headers.get('content-type') || '';
       const data = contentType.includes('application/json') ? await response.json() : await response.text();
-      if (!response.ok) {
-        throw new Error(data.error || data || '请求失败');
-      }
+      if (!response.ok) throw new Error(data.error || data || '请求失败');
       return data;
     }
 
@@ -131,21 +143,24 @@
       const el = document.getElementById('toast');
       el.textContent = message;
       el.classList.remove('hidden');
-      setTimeout(() => el.classList.add('hidden'), 2600);
+      setTimeout(() => el.classList.add('hidden'), 3000);
     }
 
     function money(value, currency = 'cny') {
-      const number = Number(value || 0).toFixed(2);
-      return currency === 'usdc' ? `${number} USDC` : `¥ ${number}`;
+      return currency === 'usdc' ? `${Number(value||0).toFixed(2)} USDC` : `¥ ${Number(value||0).toFixed(2)}`;
     }
 
+    function escapeHtml(v) {
+      return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // ========== 加载数据 ==========
     async function loadUserData() {
       const userData = await api('/auth/me');
       currentUser = userData.user;
       updateUserUI(currentUser);
-      await Promise.all([loadTasks(), loadOrders()]);
+      await Promise.all([loadTasks(), loadOrders(), loadWithdrawals()]);
       await autoSettleFromUrl();
-
       document.getElementById('loading-state').style.display = 'none';
       document.getElementById('main-content').style.display = 'block';
       renderCurrentTab();
@@ -155,19 +170,21 @@
       const displayName = user.nickname || user.username;
       const joinDate = new Date(user.created_at).toLocaleDateString('zh-CN');
       const days = Math.max(0, Math.floor((Date.now() - new Date(user.created_at).getTime()) / 86400000));
-
       document.getElementById('user-name').textContent = displayName;
       document.getElementById('avatar').textContent = displayName.charAt(0).toUpperCase();
       document.getElementById('user-info').textContent = `${user.username} · 加入于 ${joinDate}`;
       document.getElementById('stat-cny').textContent = money(user.balance_cny);
-      document.getElementById('stat-usdc').textContent = money(user.balance_usdc, 'usdc');
+      document.getElementById('stat-frozen').textContent = money(user.frozen_balance_cny || 0);
+      document.getElementById('stat-tasks').textContent = acceptedRecords.length;
       document.getElementById('stat-joined').textContent = days;
+      // 预填支付宝账号
+      const alipayInput = document.getElementById('withdraw-alipay');
+      if (alipayInput && user.alipay_id) alipayInput.value = user.alipay_id;
     }
 
     async function loadTasks() {
       const [accepted, published] = await Promise.all([
-        api('/tasks/my/accepted'),
-        api('/tasks/my/published')
+        api('/tasks/my/accepted'), api('/tasks/my/published')
       ]);
       acceptedRecords = accepted.records || [];
       publishedTasks = published.tasks || [];
@@ -179,109 +196,11 @@
       orders = data.orders || [];
     }
 
-    function showTab(tab, button) {
-      currentTab = tab;
-      document.querySelectorAll('.dashboard-tabs .tab').forEach(item => item.classList.remove('active'));
-      button.classList.add('active');
-      renderCurrentTab();
-    }
-
-    function renderCurrentTab() {
-      if (currentTab === 'orders') {
-        renderOrders(orders);
-        return;
-      }
-
-      const tasks = currentTab === 'published'
-        ? publishedTasks
-        : acceptedRecords.filter(item => currentTab === 'completed' ? item.status === 'completed' : item.status !== 'completed');
-      renderTasks(tasks);
-    }
-
-    function emptyState(text) {
-      document.getElementById('task-list').innerHTML = `<p class="empty-state">${text}</p>`;
-    }
-
-    function renderTasks(tasks) {
-      if (!tasks.length) {
-        emptyState('暂无任务');
-        return;
-      }
-
-      const statusMap = {
-        accepted: ['进行中', 'badge-warning'],
-        completed: ['已完成', 'badge-success'],
-        active: ['进行中', 'badge-success'],
-        pending: ['待支付', 'badge-warning']
-      };
-
-      document.getElementById('task-list').innerHTML = tasks.map(task => {
-        const [label, badge] = statusMap[task.status] || ['待处理', 'badge-primary'];
-        return `
-          <article class="task-card">
-            <div class="task-header">
-              <div class="task-type">任务</div>
-              <span class="badge ${badge}">${label}</span>
-            </div>
-            <div class="task-body">
-              <h3 class="task-title">${escapeHtml(task.title || '未命名任务')}</h3>
-              <p class="task-desc">${escapeHtml(task.description || task.notes || '-')}</p>
-              <div class="task-meta"><span>${escapeHtml(task.location || '远程')}</span></div>
-            </div>
-            <div class="task-footer">
-              <div class="task-reward">${money(task.reward, task.currency)}</div>
-            </div>
-          </article>
-        `;
-      }).join('');
-    }
-
-    function renderOrders(items) {
-      if (!items.length) {
-        emptyState('暂无交易记录');
-        return;
-      }
-
-      document.getElementById('task-list').innerHTML = `
-        <div class="orders-panel">
-          <div class="orders-head">
-            <span>订单号</span>
-            <span>金额</span>
-            <span>状态</span>
-            <span>时间</span>
-            <span>操作</span>
-          </div>
-          ${items.map(order => `
-            <div class="orders-row">
-              <span class="mono">${escapeHtml(order.order_no)}</span>
-              <strong>${money(order.amount, order.currency)}</strong>
-              <span>${statusBadge(order.status)}</span>
-              <span>${new Date(order.created_at).toLocaleString('zh-CN')}</span>
-              <span>${order.status === 'pending'
-                ? `<button class="btn btn-secondary btn-sm" onclick="settleOrder('${escapeHtml(order.order_no)}')">补偿查询</button>`
-                : '-'
-              }</span>
-            </div>
-          `).join('')}
-        </div>
-      `;
-    }
-
-    function statusBadge(status) {
-      if (status === 'paid') return '<span class="badge badge-success">已支付</span>';
-      if (status === 'pending') return '<span class="badge badge-warning">待支付</span>';
-      return `<span class="badge badge-primary">${escapeHtml(status || '未知')}</span>`;
-    }
-
-    async function settleOrder(orderNo) {
+    async function loadWithdrawals() {
       try {
-        const data = await api(`/payment/settle/${encodeURIComponent(orderNo)}`, { method: 'POST' });
-        toast(data.settled ? '订单已结算' : `暂未支付：${data.tradeStatus || '等待支付宝确认'}`);
-        await Promise.all([refreshUser(), loadOrders()]);
-        renderOrders(orders);
-      } catch (error) {
-        toast(error.message);
-      }
+        const data = await api('/payment/my-withdrawals');
+        withdrawals = data.withdrawals || [];
+      } catch(e) { withdrawals = []; }
     }
 
     async function refreshUser() {
@@ -290,80 +209,241 @@
       updateUserUI(currentUser);
     }
 
+    // ========== Tab切换 ==========
+    function showTab(tab, button) {
+      currentTab = tab;
+      document.querySelectorAll('.dashboard-tabs .tab').forEach(t => t.classList.remove('active'));
+      button.classList.add('active');
+      renderCurrentTab();
+    }
+
+    function renderCurrentTab() {
+      if (currentTab === 'orders') return renderOrders(orders);
+      if (currentTab === 'withdrawals') return renderWithdrawals(withdrawals);
+
+      if (currentTab === 'published') {
+        return renderPublishedTasks(publishedTasks);
+      }
+
+      // accepted tab
+      const active = acceptedRecords.filter(r => r.status !== 'completed');
+      renderAcceptedTasks(active);
+    }
+
+    function emptyState(text) {
+      document.getElementById('task-list').innerHTML = `<p class="empty-state">${text}</p>`;
+    }
+
+    // ========== 我接的任务 ==========
+    function renderAcceptedTasks(records) {
+      if (!records.length) { emptyState('暂无已接任务，去任务广场看看吧'); return; }
+
+      const statusMap = {
+        accepted: ['进行中', 'badge-warning'],
+        submitted: ['审核中', 'badge-purple'],
+        rejected: ['被拒绝', 'badge-danger'],
+        completed: ['已完成', 'badge-success']
+      };
+
+      document.getElementById('task-list').innerHTML = records.map(r => {
+        const [label, badge] = statusMap[r.status] || ['待处理', 'badge-primary'];
+        const canResubmit = r.status === 'rejected';
+        return `
+          <article class="task-card">
+            <div class="task-header">
+              <div class="task-type">任务 #${r.task_id}</div>
+              <span class="badge ${badge}">${label}</span>
+            </div>
+            <div class="task-body">
+              <h3 class="task-title">${escapeHtml(r.title || '未命名任务')}</h3>
+              ${r.proof ? `<div class="proof-block"><strong>我的提交：</strong> ${escapeHtml(r.proof)}</div>` : ''}
+              ${r.notes ? `<div class="proof-block"><strong>备注：</strong> ${escapeHtml(r.notes)}</div>` : ''}
+              <div class="task-meta"><span>📍 ${escapeHtml(r.location || '远程')}</span></div>
+            </div>
+            <div class="task-footer">
+              <div class="task-reward">${money(r.reward, r.currency)}</div>
+              ${canResubmit ? `<a href="task.html?id=${r.task_id}" class="btn btn-primary btn-sm">重新提交</a>` : ''}
+              ${r.status === 'accepted' ? `<a href="task.html?id=${r.task_id}" class="btn btn-primary btn-sm">提交证明</a>` : ''}
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    // ========== 我发布的任务 ==========
+    function renderPublishedTasks(tasks) {
+      if (!tasks.length) { emptyState('暂无发布的任务'); return; }
+
+      const statusMap = {
+        pending: ['待支付', 'badge-warning'],
+        active: ['可接单', 'badge-success'],
+        accepted: ['已接单', 'badge-info'],
+        submitted: ['待审核', 'badge-purple'],
+        completed: ['已完成', 'badge-success'],
+        cancelled: ['已取消', 'badge-warning']
+      };
+
+      document.getElementById('task-list').innerHTML = tasks.map(task => {
+        const [label, badge] = statusMap[task.status] || ['未知', 'badge-primary'];
+        const needsReview = task.status === 'submitted';
+        return `
+          <article class="task-card">
+            <div class="task-header">
+              <div class="task-type">发布任务 #${task.id}</div>
+              <span class="badge ${badge}">${label}</span>
+            </div>
+            <div class="task-body">
+              <h3 class="task-title">${escapeHtml(task.title)}</h3>
+              <p class="task-desc">${escapeHtml((task.description || '').substring(0, 60))}</p>
+              <div class="task-meta">
+                <span>📍 ${escapeHtml(task.location || '远程')}</span>
+                <span>💰 ${money(task.reward, task.currency)}</span>
+              </div>
+              ${needsReview ? `<div class="review-actions">
+                <a href="task.html?id=${task.id}" class="btn btn-primary btn-sm">去审核</a>
+              </div>` : ''}
+            </div>
+            <div class="task-footer">
+              <div class="task-reward">${money(task.reward, task.currency)}</div>
+              <a href="task.html?id=${task.id}" class="btn btn-secondary btn-sm">详情</a>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    // ========== 交易记录 ==========
+    function renderOrders(items) {
+      if (!items.length) { emptyState('暂无交易记录'); return; }
+
+      document.getElementById('task-list').innerHTML = `
+        <div class="orders-panel" style="width:100%;">
+          <div class="orders-head">
+            <span>订单号</span><span>金额</span><span>状态</span><span>时间</span><span>操作</span>
+          </div>
+          ${items.map(o => `
+            <div class="orders-row">
+              <span class="mono">${escapeHtml(o.order_no)}</span>
+              <strong>${money(o.amount, o.currency)}</strong>
+              <span>${orderStatusBadge(o.status)}</span>
+              <span>${new Date(o.created_at).toLocaleString('zh-CN')}</span>
+              <span>${o.status === 'pending'
+                ? `<button class="btn btn-secondary btn-sm" onclick="settleOrder('${escapeHtml(o.order_no)}')">补偿查询</button>`
+                : o.task_id ? '任务支付' : '-'}</span>
+            </div>
+          `).join('')}
+        </div>
+      `;
+    }
+
+    function orderStatusBadge(status) {
+      const map = { paid: ['已支付','badge-success'], pending: ['待支付','badge-warning'], failed: ['失败','badge-danger'], closed: ['已关闭','badge-warning'] };
+      const [label, badge] = map[status] || [status, 'badge-primary'];
+      return `<span class="badge ${badge}">${label}</span>`;
+    }
+
+    // ========== 提现记录 ==========
+    function renderWithdrawals(items) {
+      if (!items.length) { emptyState('暂无提现记录'); return; }
+
+      const statusMap = {
+        pending_review: ['待审核', 'badge-warning'],
+        approved: ['已通过', 'badge-info'],
+        rejected: ['已拒绝', 'badge-danger'],
+        paid: ['已打款', 'badge-success']
+      };
+
+      document.getElementById('task-list').innerHTML = `
+        <div class="orders-panel" style="width:100%;">
+          <div class="orders-head">
+            <span>提现单号</span><span>金额</span><span>状态</span><span>支付宝</span><span>时间</span>
+          </div>
+          ${items.map(w => {
+            const [label, badge] = statusMap[w.status] || [w.status, 'badge-primary'];
+            return `
+              <div class="orders-row">
+                <span class="mono">${escapeHtml(w.withdraw_no)}</span>
+                <strong>${money(w.amount, w.currency)}</strong>
+                <span><span class="badge ${badge}">${label}</span></span>
+                <span>${escapeHtml(w.alipay_id || '-')}</span>
+                <span>${new Date(w.created_at).toLocaleString('zh-CN')}</span>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    // ========== 操作 ==========
+    async function settleOrder(orderNo) {
+      try {
+        const data = await api(`/payment/settle/${encodeURIComponent(orderNo)}`, { method: 'POST' });
+        toast(data.settled ? '✅ 订单已结算' : `暂未支付：${data.tradeStatus || '等待支付宝确认'}`);
+        await Promise.all([refreshUser(), loadOrders()]);
+        renderCurrentTab();
+      } catch (error) { toast(error.message); }
+    }
+
     async function autoSettleFromUrl() {
       const params = new URLSearchParams(window.location.search);
       const orderNo = params.get('out_trade_no') || params.get('orderNo');
       if (!orderNo) return;
       await settleOrder(orderNo);
       currentTab = 'orders';
-      document.querySelectorAll('.dashboard-tabs .tab').forEach(item => item.classList.toggle('active', item.dataset.tab === 'orders'));
-      params.delete('out_trade_no');
-      params.delete('orderNo');
-      const next = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
-      window.history.replaceState({}, '', next);
+      document.querySelectorAll('.dashboard-tabs .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'orders'));
+      params.delete('out_trade_no'); params.delete('orderNo');
+      window.history.replaceState({}, '', `${window.location.pathname}${params.toString() ? '?' + params : ''}`);
     }
 
     async function showEditProfile() {
       const nickname = prompt('请输入昵称', currentUser.nickname || currentUser.username);
       if (nickname === null) return;
       const phone = prompt('请输入手机号', currentUser.phone || '');
-      await api('/auth/profile', {
-        method: 'PUT',
-        body: JSON.stringify({ nickname, phone, alipay_id: currentUser.alipay_id || null })
-      });
-      toast('资料已更新');
-      await refreshUser();
-    }
-
-    async function requestWithdraw() {
-      const amount = prompt('请输入提现金额');
-      if (!amount) return;
       try {
-        await api('/payment/withdraw', {
-          method: 'POST',
-          body: JSON.stringify({ amount, currency: 'cny', alipayId: currentUser.alipay_id })
-        });
-        toast('提现申请已提交，等待审核');
-      } catch (error) {
-        toast(error.message);
-      }
+        await api('/auth/profile', { method: 'PUT', body: JSON.stringify({ nickname, phone, alipay_id: currentUser.alipay_id || null }) });
+        toast('资料已更新');
+        await refreshUser();
+      } catch(e) { toast(e.message); }
     }
 
-    function escapeHtml(value) {
-      return String(value ?? '')
-        .replace(/&/g, '&amp;')
-        .replace(/</g, '&lt;')
-        .replace(/>/g, '&gt;')
-        .replace(/"/g, '&quot;')
-        .replace(/'/g, '&#039;');
-    }
-
-    // 退出登录由header.js统一处理
-
+    // ========== 表单事件 ==========
     document.getElementById('recharge-form').addEventListener('submit', async event => {
       event.preventDefault();
       const amount = new FormData(event.currentTarget).get('amount');
       try {
-        const data = await api('/payment/qrcode', {
-          method: 'POST',
-          body: JSON.stringify({ amount, currency: 'cny' })
-        });
+        const data = await api('/payment/qrcode', { method: 'POST', body: JSON.stringify({ amount, currency: 'cny' }) });
         if (data.payForm) {
           const win = window.open('', '_blank');
           win.document.write(data.payForm);
           win.document.close();
-        } else {
-          toast(data.message || '订单已创建');
-        }
+        } else { toast(data.message || '订单已创建'); }
         await loadOrders();
         currentTab = 'orders';
-        document.querySelectorAll('.dashboard-tabs .tab').forEach(item => item.classList.toggle('active', item.dataset.tab === 'orders'));
+        document.querySelectorAll('.dashboard-tabs .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'orders'));
         renderOrders(orders);
-      } catch (error) {
-        toast(error.message);
-      }
+      } catch (error) { toast(error.message); }
     });
 
+    document.getElementById('withdraw-form').addEventListener('submit', async event => {
+      event.preventDefault();
+      const form = new FormData(event.currentTarget);
+      const amount = form.get('amount');
+      const alipayId = form.get('alipay_id');
+      if (!amount || !alipayId) { toast('请填写提现金额和支付宝账号'); return; }
+      try {
+        await api('/payment/withdraw', {
+          method: 'POST',
+          body: JSON.stringify({ amount, currency: 'cny', alipayId })
+        });
+        toast('✅ 提现申请已提交，等待审核');
+        await Promise.all([refreshUser(), loadWithdrawals()]);
+        currentTab = 'withdrawals';
+        document.querySelectorAll('.dashboard-tabs .tab').forEach(t => t.classList.toggle('active', t.dataset.tab === 'withdrawals'));
+        renderWithdrawals(withdrawals);
+      } catch (error) { toast(error.message); }
+    });
+
+    // ========== 初始化 ==========
     document.addEventListener('DOMContentLoaded', () => {
       if (!requireLogin()) return;
       loadUserData().catch(error => {

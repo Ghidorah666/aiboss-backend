@@ -5,6 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>任务详情 - AIBoss</title>
   <link rel="stylesheet" href="css/style.css">
+  <style>
+    .proof-card { background: var(--bg-secondary, #1a1a2e); border: 1px solid var(--border-color, #2a2a3e); border-radius: var(--radius-md, 8px); padding: var(--space-lg, 16px); margin-bottom: var(--space-md, 12px); }
+    .proof-card h4 { margin-bottom: var(--space-sm, 8px); }
+    .proof-card .meta { color: var(--text-tertiary, #666); font-size: 0.8125rem; margin-bottom: var(--space-sm, 8px); }
+    .proof-card .content { color: var(--text-secondary, #a0a0b0); line-height: 1.6; }
+    .review-box { background: rgba(0,122,255,0.05); border: 1px solid rgba(0,122,255,0.2); border-radius: var(--radius-md, 8px); padding: var(--space-lg, 16px); margin-bottom: var(--space-lg, 16px); }
+    .submit-form textarea { width: 100%; min-height: 100px; background: var(--bg-secondary, #1a1a2e); border: 1px solid var(--border-color, #2a2a3e); border-radius: var(--radius-md, 8px); padding: var(--space-md, 12px); color: var(--text-primary, #e0e0e8); font-size: 0.9375rem; resize: vertical; margin-bottom: var(--space-md, 12px); }
+    .badge-info { background: rgba(0,122,255,0.15); color: #007AFF; }
+    .badge-purple { background: rgba(175,82,222,0.15); color: #AF52DE; }
+    .badge-danger { background: rgba(255,69,58,0.15); color: #FF3B30; }
+  </style>
 </head>
 <body>
   <header class="header"></header>
@@ -15,51 +26,83 @@
         <p>加载任务详情...</p>
       </div>
 
-      <div id="task-detail" class="card" style="display: none;">
-        <div class="card-body">
-          <!-- 任务头部 -->
-          <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--space-lg);">
-            <div>
-              <span id="task-category" class="badge badge-primary" style="margin-bottom: var(--space-sm);">🏠 签到</span>
-              <h1 id="task-title" style="font-size: 1.75rem; margin-bottom: var(--space-sm);">加载中...</h1>
-              <div style="display: flex; align-items: center; gap: var(--space-md); color: var(--text-secondary); font-size: 0.9375rem;">
-                <span id="task-publisher">👤 发布者: <strong>-</strong></span>
-                <span id="task-publisher-badge" class="badge badge-purple"></span>
+      <div id="task-detail" style="display: none;">
+        <!-- 任务基本信息 -->
+        <div class="card" style="margin-bottom: var(--space-lg);">
+          <div class="card-body">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--space-lg);">
+              <div>
+                <span id="task-category" class="badge badge-primary" style="margin-bottom: var(--space-sm);">🏠 签到</span>
+                <h1 id="task-title" style="font-size: 1.75rem; margin-bottom: var(--space-sm);">加载中...</h1>
+                <div style="display: flex; align-items: center; gap: var(--space-md); color: var(--text-secondary); font-size: 0.9375rem;">
+                  <span id="task-publisher">👤 发布者: <strong>-</strong></span>
+                  <span id="task-publisher-badge" class="badge badge-purple"></span>
+                </div>
+              </div>
+              <div id="task-reward" style="font-size: 1.5rem; font-weight: 700; color: var(--success, #34C759);">💴 0 CNY</div>
+            </div>
+
+            <div style="padding: var(--space-lg); background: var(--bg-secondary); border-radius: var(--radius-md); margin-bottom: var(--space-lg);">
+              <h3 style="margin-bottom: var(--space-md);">📋 任务描述</h3>
+              <p id="task-description" style="color: var(--text-secondary); line-height: 1.8;">-</p>
+            </div>
+
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-md); margin-bottom: var(--space-lg);">
+              <div style="padding: var(--space-md); background: var(--bg-secondary); border-radius: var(--radius-md);">
+                <div style="color: var(--text-tertiary); font-size: 0.8125rem; margin-bottom: var(--space-xs);">📍 任务地点</div>
+                <div id="task-location" style="font-weight: 600;">-</div>
+              </div>
+              <div style="padding: var(--space-md); background: var(--bg-secondary); border-radius: var(--radius-md);">
+                <div style="color: var(--text-tertiary); font-size: 0.8125rem; margin-bottom: var(--space-xs);">📅 发布时间</div>
+                <div id="task-date" style="font-weight: 600;">-</div>
+              </div>
+              <div style="padding: var(--space-md); background: var(--bg-secondary); border-radius: var(--radius-md);">
+                <div style="color: var(--text-tertiary); font-size: 0.8125rem; margin-bottom: var(--space-xs);">💰 报酬</div>
+                <div id="task-reward-info" style="font-weight: 600; color: var(--success);">-</div>
+              </div>
+              <div style="padding: var(--space-md); background: var(--bg-secondary); border-radius: var(--radius-md);">
+                <div style="color: var(--text-tertiary); font-size: 0.8125rem; margin-bottom: var(--space-xs);">📊 状态</div>
+                <div id="task-status">-</div>
               </div>
             </div>
-            <div id="task-reward" class="task-reward" style="font-size: 1.5rem;">💴 0 CNY</div>
           </div>
+        </div>
 
-          <!-- 任务描述 -->
-          <div style="padding: var(--space-lg); background: var(--bg-secondary); border-radius: var(--radius-md); margin-bottom: var(--space-lg);">
-            <h3 style="margin-bottom: var(--space-md);">📋 任务描述</h3>
-            <p id="task-description" style="color: var(--text-secondary); line-height: 1.8;">-</p>
-          </div>
+        <!-- 接单记录 / 提交证明 -->
+        <div id="records-section" style="display: none; margin-bottom: var(--space-lg);">
+          <h3 style="margin-bottom: var(--space-md);">📝 接单记录</h3>
+          <div id="records-list"></div>
+        </div>
 
-          <!-- 任务信息 -->
-          <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-md); margin-bottom: var(--space-lg);">
-            <div style="padding: var(--space-md); background: var(--bg-secondary); border-radius: var(--radius-md);">
-              <div style="color: var(--text-tertiary); font-size: 0.8125rem; margin-bottom: var(--space-xs);">📍 任务地点</div>
-              <div id="task-location" style="font-weight: 600;">-</div>
-            </div>
-            <div style="padding: var(--space-md); background: var(--bg-secondary); border-radius: var(--radius-md);">
-              <div style="color: var(--text-tertiary); font-size: 0.8125rem; margin-bottom: var(--space-xs);">📅 发布时间</div>
-              <div id="task-date" style="font-weight: 600;">-</div>
-            </div>
-            <div style="padding: var(--space-md); background: var(--bg-secondary); border-radius: var(--radius-md);">
-              <div style="color: var(--text-tertiary); font-size: 0.8125rem; margin-bottom: var(--space-xs);">💰 报酬</div>
-              <div id="task-reward-info" style="font-weight: 600; color: var(--success);">-</div>
-            </div>
-            <div style="padding: var(--space-md); background: var(--bg-secondary); border-radius: var(--radius-md);">
-              <div style="color: var(--text-tertiary); font-size: 0.8125rem; margin-bottom: var(--space-xs);">📊 状态</div>
-              <div id="task-status" style="font-weight: 600;">-</div>
+        <!-- 提交证明表单（工作者视角） -->
+        <div id="submit-section" style="display: none; margin-bottom: var(--space-lg);">
+          <div class="card">
+            <div class="card-body">
+              <h3 style="margin-bottom: var(--space-md);">📤 提交完成证明</h3>
+              <div class="submit-form">
+                <textarea id="proof-input" placeholder="请描述你如何完成了这个任务，附上截图说明等..."></textarea>
+                <input type="text" id="notes-input" placeholder="备注（可选）" style="width:100%; background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: var(--space-md); color: var(--text-primary); font-size: 0.9375rem; margin-bottom: var(--space-md);">
+                <button class="btn btn-primary" onclick="submitProof()">提交证明</button>
+              </div>
             </div>
           </div>
+        </div>
 
-          <!-- 操作按钮 -->
-          <div id="task-actions" style="display: flex; gap: var(--space-md);">
-            <button class="btn btn-secondary btn-lg" onclick="history.back()">← 返回</button>
+        <!-- 审核区域（发布者视角） -->
+        <div id="review-section" style="display: none; margin-bottom: var(--space-lg);">
+          <div class="review-box">
+            <h3 style="margin-bottom: var(--space-md);">🔍 审核工作者提交</h3>
+            <p style="color: var(--text-secondary); margin-bottom: var(--space-md);">工作者已提交完成证明，请审核后决定是否通过。</p>
+            <div style="display: flex; gap: var(--space-md);">
+              <button class="btn btn-primary" onclick="confirmTask()">✅ 审核通过（打款 ¥<span id="confirm-reward">0</span>）</button>
+              <button class="btn btn-outline" style="color: #FF3B30; border-color: #FF3B30;" onclick="rejectTask()">❌ 审核拒绝</button>
+            </div>
           </div>
+        </div>
+
+        <!-- 操作按钮 -->
+        <div id="task-actions" style="display: flex; gap: var(--space-md);">
+          <button class="btn btn-secondary btn-lg" onclick="history.back()">← 返回</button>
         </div>
       </div>
 
@@ -82,27 +125,29 @@
   <script src="js/header.js"></script>
   <script>
     let currentTask = null;
+    let taskRecords = [];
+    let myRecord = null;
 
     function getTaskId() {
-      const params = new URLSearchParams(window.location.search);
-      return params.get('id');
+      return new URLSearchParams(window.location.search).get('id');
     }
 
-    function escapeHtml(str) {
-      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    function escapeHtml(s) {
+      return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
     }
 
     async function loadTask() {
       const taskId = getTaskId();
-      if (!taskId) {
-        showError();
-        return;
-      }
-
+      if (!taskId) { showError(); return; }
       try {
         const data = await AIBossAPI.tasks.get(taskId);
         currentTask = data.task || data;
-        renderTask(currentTask);
+        taskRecords = data.records || [];
+        const user = AIBossAPI.getUser();
+        if (user) {
+          myRecord = taskRecords.find(r => r.worker_id === user.id) || null;
+        }
+        renderTask(currentTask, taskRecords);
       } catch (err) {
         console.error('加载任务失败:', err);
         showError();
@@ -114,95 +159,176 @@
       document.getElementById('task-error').style.display = 'block';
     }
 
-    function renderTask(task) {
+    const categoryMap = {
+      'signin': '🏠 签到', 'checkin': '🏠 签到',
+      'collection': '📸 采集', 'execution': '⚡ 执行',
+      'delegation': '🤝 委托', 'research': '📝 调研',
+      'shopping': '🛒 代购', 'other': '📋 其他'
+    };
+
+    const statusMap = {
+      'pending':    ['待支付', 'badge-warning'],
+      'active':     ['可接单', 'badge-success'],
+      'accepted':   ['已接单', 'badge-info'],
+      'submitted':  ['待审核', 'badge-purple'],
+      'completed':  ['已完成', 'badge-success'],
+      'rejected':   ['被拒绝', 'badge-danger'],
+      'cancelled':  ['已取消', 'badge-warning']
+    };
+
+    function renderTask(task, records) {
       document.getElementById('task-loading').style.display = 'none';
       document.getElementById('task-detail').style.display = 'block';
 
-      // 分类
-      const categoryMap = {
-        'signin': '🏠 签到', 'checkin': '🏠 签到',
-        'collection': '📸 采集', 'execution': '⚡ 执行',
-        'delegation': '🤝 委托', 'research': '📝 调研',
-        'shopping': '🛒 代购', 'other': '📋 其他'
-      };
+      // 基本信息
       document.getElementById('task-category').textContent = categoryMap[task.category] || '📋 ' + (task.category || '其他');
-
-      // 标题 & 描述
       document.getElementById('task-title').textContent = task.title || '未命名任务';
       document.getElementById('task-description').textContent = task.description || '暂无描述';
 
-      // 发布者
       const isAi = task.publisher_type === 'ai';
       document.getElementById('task-publisher').innerHTML = `${isAi ? '🤖' : '👤'} 发布者: <strong>${escapeHtml(task.publisher_name || (isAi ? 'AI Agent' : '匿名用户'))}</strong>`;
       document.getElementById('task-publisher-badge').textContent = isAi ? 'AI' : '人类';
       document.getElementById('task-publisher-badge').className = 'badge ' + (isAi ? 'badge-purple' : 'badge-primary');
 
-      // 报酬
       const reward = Number(task.reward || 0).toFixed(2);
       const currency = task.currency === 'usdc' ? 'USDC' : 'CNY';
-      document.getElementById('task-reward').textContent = `💴 ${reward} ${currency}`;
+      document.getElementById('task-reward').textContent = `💴 ¥${reward} ${currency}`;
       document.getElementById('task-reward-info').textContent = `¥${reward} ${currency}`;
-
-      // 其他信息
       document.getElementById('task-location').textContent = task.location || '远程';
       document.getElementById('task-date').textContent = task.created_at ? new Date(task.created_at).toLocaleDateString('zh-CN') : '-';
 
-      // 状态
-      const statusMap = {
-        'pending': ['待接单', 'badge-success'],
-        'active': ['进行中', 'badge-warning'],
-        'completed': ['已完成', 'badge-primary'],
-        'cancelled': ['已取消', 'badge-warning']
-      };
       const [statusLabel, statusBadge] = statusMap[task.status] || ['未知', 'badge-primary'];
       document.getElementById('task-status').innerHTML = `<span class="badge ${statusBadge}">${statusLabel}</span>`;
 
-      // 按钮
-      renderActions(task);
+      // 渲染接单记录
+      renderRecords(records);
+
+      // 渲染操作区
+      renderActions(task, records);
     }
 
-    function renderActions(task) {
+    function renderRecords(records) {
+      if (!records.length) return;
+      const section = document.getElementById('records-section');
+      const list = document.getElementById('records-list');
+      section.style.display = 'block';
+
+      const recordStatusMap = {
+        'accepted': ['进行中', 'badge-warning'],
+        'submitted': ['已提交', 'badge-purple'],
+        'completed': ['已完成', 'badge-success'],
+        'rejected': ['被拒绝', 'badge-danger']
+      };
+
+      list.innerHTML = records.map(r => {
+        const [label, badge] = recordStatusMap[r.status] || ['未知', 'badge-primary'];
+        return `
+          <div class="proof-card">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-sm);">
+              <h4>👤 ${escapeHtml(r.worker_name || '工作者')} #${r.worker_id}</h4>
+              <span class="badge ${badge}">${label}</span>
+            </div>
+            <div class="meta">接单时间：${new Date(r.created_at).toLocaleString('zh-CN')}</div>
+            ${r.proof ? `<div class="content"><strong>完成证明：</strong>${escapeHtml(r.proof)}</div>` : ''}
+            ${r.notes ? `<div class="content" style="margin-top:8px;"><strong>备注：</strong>${escapeHtml(r.notes)}</div>` : ''}
+            ${r.completed_at ? `<div class="meta" style="margin-top:8px;">提交时间：${new Date(r.completed_at).toLocaleString('zh-CN')}</div>` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderActions(task, records) {
       const actionsEl = document.getElementById('task-actions');
+      const submitSection = document.getElementById('submit-section');
+      const reviewSection = document.getElementById('review-section');
       const loggedIn = AIBossAPI.isLoggedIn();
       const user = AIBossAPI.getUser();
+
       let buttons = '<button class="btn btn-secondary btn-lg" onclick="history.back()">← 返回</button>';
 
-      if (task.status === 'pending') {
+      // 判断身份
+      const isPublisher = user && task.publisher_id === user.id;
+      const hasSubmitted = myRecord && (myRecord.status === 'submitted' || myRecord.status === 'completed');
+      const hasAccepted = myRecord && myRecord.status === 'accepted';
+      const isRejected = myRecord && myRecord.status === 'rejected';
+
+      if (task.status === 'active' && !isPublisher) {
+        // 可接单
         if (loggedIn) {
-          buttons = `<button class="btn btn-primary btn-lg" style="flex:1;" onclick="acceptTask()">🤝 立即接单</button>` + buttons;
+          if (myRecord) {
+            // 已接单
+            if (hasAccepted) {
+              submitSection.style.display = 'block';
+            }
+          } else {
+            buttons = `<button class="btn btn-primary btn-lg" style="flex:1;" onclick="acceptTask()">🤝 立即接单</button>` + buttons;
+          }
         } else {
           buttons = `<a href="auth.html?redirect=${encodeURIComponent(window.location.href)}" class="btn btn-primary btn-lg" style="flex:1;">🔐 登录后接单</a>` + buttons;
         }
-      } else if (task.status === 'active' && user && task.accepted_by === user.id) {
-        buttons = `<button class="btn btn-success btn-lg" style="flex:1;" onclick="completeTask()">✅ 提交完成</button>` + buttons;
+      } else if (task.status === 'submitted' && isPublisher) {
+        // 发布者审核
+        const submittedRecord = records.find(r => r.status === 'submitted');
+        if (submittedRecord) {
+          document.getElementById('confirm-reward').textContent = Number(task.reward).toFixed(2);
+          reviewSection.style.display = 'block';
+        }
+      } else if (task.status === 'submitted' && !isPublisher) {
+        // 工作者等待审核
+        if (hasSubmitted) {
+          buttons = `<div style="flex:1; text-align:center; color: var(--text-secondary); padding: var(--space-md);">⏳ 等待发布者审核...</div>` + buttons;
+        }
+      } else if (task.status === 'completed') {
+        buttons = `<div style="flex:1; text-align:center; color: var(--success); padding: var(--space-md); font-weight:600;">✅ 任务已完成</div>` + buttons;
+      } else if (isRejected) {
+        // 被拒绝，可重新提交
+        submitSection.style.display = 'block';
       }
 
       actionsEl.innerHTML = buttons;
     }
 
+    // ========== 操作函数 ==========
     async function acceptTask() {
       if (!currentTask) return;
       try {
         await AIBossAPI.tasks.accept(currentTask.id);
-        alert('接单成功！请前往个人中心查看任务。');
-        window.location.href = 'dashboard.html';
-      } catch (err) {
-        alert('接单失败: ' + err.message);
-      }
+        alert('✅ 接单成功！请提交完成证明。');
+        window.location.reload();
+      } catch (err) { alert('接单失败: ' + err.message); }
     }
 
-    async function completeTask() {
+    async function submitProof() {
       if (!currentTask) return;
-      const proof = prompt('请输入完成证明（如截图描述）:');
-      if (!proof) return;
-      const notes = prompt('备注（可选）:') || '';
+      const proof = document.getElementById('proof-input').value.trim();
+      const notes = document.getElementById('notes-input').value.trim();
+      if (!proof) { alert('请填写完成证明'); return; }
       try {
         await AIBossAPI.tasks.complete(currentTask.id, proof, notes);
-        alert('任务已提交完成，等待发布者确认！');
-        window.location.href = 'dashboard.html';
-      } catch (err) {
-        alert('提交失败: ' + err.message);
-      }
+        alert('✅ 证明已提交，等待发布者审核！');
+        window.location.reload();
+      } catch (err) { alert('提交失败: ' + err.message); }
+    }
+
+    async function confirmTask() {
+      if (!currentTask) return;
+      if (!confirm('确认审核通过？将打款给工作者。')) return;
+      try {
+        const result = await AIBossAPI.tasks.confirm(currentTask.id);
+        alert(`✅ ${result.message || '审核通过，已打款'}`);
+        window.location.reload();
+      } catch (err) { alert('审核失败: ' + err.message); }
+    }
+
+    async function rejectTask() {
+      if (!currentTask) return;
+      const reason = prompt('请输入拒绝理由:');
+      if (reason === null) return;
+      try {
+        await AIBossAPI.tasks.reject(currentTask.id, reason);
+        alert('已拒绝，工作者可重新提交。');
+        window.location.reload();
+      } catch (err) { alert('操作失败: ' + err.message); }
     }
 
     document.addEventListener('DOMContentLoaded', loadTask);

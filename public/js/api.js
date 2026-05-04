@@ -153,6 +153,19 @@ const taskAPI = {
   // 获取我发布的任务
   async getMyPublished() {
     return api('/tasks/my/published');
+  },
+  
+  // 审核通过（发布者确认+打款）
+  async confirm(taskId) {
+    return api(`/tasks/${taskId}/confirm`, { method: 'POST' });
+  },
+  
+  // 审核拒绝（发布者操作）
+  async reject(taskId, reason) {
+    return api(`/tasks/${taskId}/reject`, {
+      method: 'POST',
+      body: JSON.stringify({ reason })
+    });
   }
 };
 
@@ -182,6 +195,19 @@ const paymentAPI = {
   // 获取我的订单
   async getMyOrders() {
     return api('/payment/my-orders');
+  },
+  
+  // 提现申请
+  async withdraw(amount, currency, alipayId) {
+    return api('/payment/withdraw', {
+      method: 'POST',
+      body: JSON.stringify({ amount, currency, alipayId })
+    });
+  },
+  
+  // 我的提现记录
+  async getMyWithdrawals() {
+    return api('/payment/my-withdrawals');
   }
 };
 

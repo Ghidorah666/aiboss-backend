@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="cn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>管理后台 - AIBoss</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .admin-header { padding: var(--space-lg, 16px) 0; border-bottom: 1px solid var(--border-color, #2a2a3e); margin-bottom: var(--space-xl, 24px); }
+    .admin-header h1 { font-size: 1.5rem; }
+    .stat-row { display: flex; gap: var(--space-md, 12px); margin-bottom: var(--space-xl, 24px); flex-wrap: wrap; }
+    .stat-row .stat-card { flex: 1; min-width: 150px; }
+    .table-panel { overflow-x: auto; margin-bottom: var(--space-xl, 24px); }
+    .table-panel table { width: 100%; border-collapse: collapse; min-width: 700px; }
+    .table-panel th, .table-panel td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border-color, #2a2a3e); font-size: 0.875rem; }
+    .table-panel th { font-weight: 600; color: var(--text-secondary, #a0a0b0); font-size: 0.8125rem; }
+    .mono { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.75rem; }
+    .badge-info { background: rgba(0,122,255,0.15); color: #007AFF; }
+    .badge-purple { background: rgba(175,82,222,0.15); color: #AF52DE; }
+    .badge-danger { background: rgba(255,69,58,0.15); color: #FF3B30; }
+    .filter-bar { display: flex; gap: var(--space-sm, 8px); margin-bottom: var(--space-lg, 16px); flex-wrap: wrap; }
+    .filter-btn { padding: 6px 14px; border: 1px solid var(--border-color, #2a2a3e); border-radius: var(--radius-sm, 4px); background: transparent; color: var(--text-secondary, #a0a0b0); cursor: pointer; font-size: 0.8125rem; }
+    .filter-btn.active { background: var(--primary, #007AFF); color: white; border-color: var(--primary, #007AFF); }
+    .actions-cell { display: flex; gap: 6px; }
+    .actions-cell .btn { font-size: 0.75rem; padding: 4px 8px; }
+  </style>
+</head>
+<body>
+  <header class="header"></header>
+
+  <main class="section">
+    <div class="container">
+      <div id="admin-loading" class="text-center" style="padding: var(--space-3xl);">加载中...</div>
+
+      <div id="admin-content" style="display: none;">
+        <div class="admin-header">
+          <h1>⚙️ 管理后台</h1>
+          <p style="color: var(--text-secondary);">管理提现申请、用户和任务</p>
+        </div>
+
+        <div class="stat-row">
+          <div class="stat-card">
+            <span>待审核提现</span>
+            <strong id="stat-pending">0</strong>
+          </div>
+          <div class="stat-card">
+            <span>已通过</span>
+            <strong id="stat-approved">0</strong>
+          </div>
+          <div class="stat-card">
+            <span>已打款</span>
+            <strong id="stat-paid">0</strong>
+          </div>
+          <div class="stat-card">
+            <span>已拒绝</span>
+            <strong id="stat-rejected">0</strong>
+          </div>
+        </div>
+
+        <h2 style="margin-bottom: var(--space-md);">提现申请</h2>
+        <div class="filter-bar">
+          <button class="filter-btn active" data-filter="all" onclick="filterWithdrawals('all', this)">全部</button>
+          <button class="filter-btn" data-filter="pending_review" onclick="filterWithdrawals('pending_review', this)">待审核</button>
+          <button class="filter-btn" data-filter="approved" onclick="filterWithdrawals('approved', this)">已通过</button>
+          <button class="filter-btn" data-filter="paid" onclick="filterWithdrawals('paid', this)">已打款</button>
+          <button class="filter-btn" data-filter="rejected" onclick="filterWithdrawals('rejected', this)">已拒绝</button>
+        </div>
+
+        <div class="table-panel">
+          <table>
+            <thead>
+              <tr>
+                <th>提现单号</th>
+                <th>用户</th>
+                <th>金额</th>
+                <th>支付宝</th>
+                <th>状态</th>
+                <th>申请时间</th>
+                <th>操作</th>
+              </tr>
+            </thead>
+            <tbody id="withdrawals-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-bottom" style="border-top: none; padding-top: 0;">
+        <span>© 2026 AIBoss Admin</span>
+      </div>
+    </div>
+  </footer>
+
+  <script src="js/api.js"></script>
+  <script src="js/header.js"></script>
+  <script>
+    const API_BASE = '/api';
+    let allWithdrawals = [];
+    let currentFilter = 'all';
+
+    function getToken() { return localStorage.getItem('aiboss_token'); }
+
+    async function adminApi(endpoint, options = {}) {
+      const response = await fetch(`${API_BASE}${endpoint}`, {
+        ...options,
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${getToken()}`, ...options.headers }
+      });
+      const contentType = response.headers.get('content-type') || '';
+      const data = contentType.includes('application/json') ? await response.json() : await response.text();
+      if (!response.ok) throw new Error(data.error || data || '请求失败');
+      return data;
+    }
+
+    function escapeHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+    function money(v) { return `¥ ${Number(v||0).toFixed(2)}`; }
+
+    async function loadAdmin() {
+      try {
+        const data = await adminApi('/payment/admin/withdrawals');
+        allWithdrawals = data.withdrawals || [];
+        updateStats();
+        renderTable(allWithdrawals);
+        document.getElementById('admin-loading').style.display = 'none';
+        document.getElementById('admin-content').style.display = 'block';
+      } catch(err) {
+        document.getElementById('admin-loading').innerHTML = `<p style="color:#FF3B30;">加载失败：${escapeHtml(err.message)}</p>`;
+      }
+    }
+
+    function updateStats() {
+      const counts = { pending_review: 0, approved: 0, paid: 0, rejected: 0 };
+      allWithdrawals.forEach(w => { if (counts[w.status] !== undefined) counts[w.status]++; });
+      document.getElementById('stat-pending').textContent = counts.pending_review;
+      document.getElementById('stat-approved').textContent = counts.approved;
+      document.getElementById('stat-paid').textContent = counts.paid;
+      document.getElementById('stat-rejected').textContent = counts.rejected;
+    }
+
+    function filterWithdrawals(filter, btn) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filtered = filter === 'all' ? allWithdrawals : allWithdrawals.filter(w => w.status === filter);
+      renderTable(filtered);
+    }
+
+    function renderTable(items) {
+      const tbody = document.getElementById('withdrawals-tbody');
+      if (!items.length) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color: var(--text-tertiary); padding: 24px;">暂无数据</td></tr>';
+        return;
+      }
+
+      const statusMap = {
+        pending_review: ['待审核', 'badge-warning'],
+        approved: ['已通过', 'badge-info'],
+        rejected: ['已拒绝', 'badge-danger'],
+        paid: ['已打款', 'badge-success']
+      };
+
+      tbody.innerHTML = items.map(w => {
+        const [label, badge] = statusMap[w.status] || [w.status, 'badge-primary'];
+        let actions = '';
+        if (w.status === 'pending_review') {
+          actions = `
+            <button class="btn btn-primary btn-sm" onclick="approveWithdraw('${escapeHtml(w.withdraw_no)}')">通过</button>
+            <button class="btn btn-outline btn-sm" style="color:#FF3B30;border-color:#FF3B30;" onclick="rejectWithdraw('${escapeHtml(w.withdraw_no)}')">拒绝</button>
+          `;
+        } else if (w.status === 'approved') {
+          actions = `<button class="btn btn-success btn-sm" onclick="markPaid('${escapeHtml(w.withdraw_no)}')">标记已打款</button>`;
+        } else {
+          actions = '-';
+        }
+
+        return `
+          <tr>
+            <td class="mono">${escapeHtml(w.withdraw_no)}</td>
+            <td>${escapeHtml(w.username || '用户#'+w.user_id)}</td>
+            <td><strong>${money(w.amount)}</strong></td>
+            <td>${escapeHtml(w.alipay_id || '-')}</td>
+            <td><span class="badge ${badge}">${label}</span></td>
+            <td>${new Date(w.created_at).toLocaleString('zh-CN')}</td>
+            <td class="actions-cell">${actions}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    async function approveWithdraw(withdrawNo) {
+      if (!confirm('确认审核通过此提现申请？')) return;
+      try {
+        await adminApi(`/payment/admin/withdrawals/${withdrawNo}/approve`, { method: 'POST' });
+        alert('✅ 已通过，请手动打款后标记"已打款"');
+        await loadAdmin();
+      } catch(err) { alert('操作失败: ' + err.message); }
+    }
+
+    async function rejectWithdraw(withdrawNo) {
+      const reason = prompt('请输入拒绝理由:');
+      if (reason === null) return;
+      try {
+        await adminApi(`/payment/admin/withdrawals/${withdrawNo}/reject`, { method: 'POST', body: JSON.stringify({ reason }) });
+        alert('已拒绝，余额已退还用户');
+        await loadAdmin();
+      } catch(err) { alert('操作失败: ' + err.message); }
+    }
+
+    async function markPaid(withdrawNo) {
+      if (!confirm('确认已完成打款？')) return;
+      try {
+        await adminApi(`/payment/admin/withdrawals/${withdrawNo}/paid`, { method: 'POST' });
+        alert('✅ 已标记为已打款');
+        await loadAdmin();
+      } catch(err) { alert('操作失败: ' + err.message); }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      if (!getToken()) {
+        window.location.href = 'auth.html?redirect=' + encodeURIComponent(window.location.href);
+        return;
+      }
+      loadAdmin();
+    });
+  </script>
+</body>
+</html>
