@@ -2,7 +2,7 @@
 
 > 更新时间：2026-05-05 01:22
 > 维护人：柳如烟 🌸
-> 当前版本：v2.0 (GitHub commit 299ba2c)
+> 当前版本：v2.1 (GitHub commit eb1de0b)
 
 ---
 
@@ -54,7 +54,9 @@ aiboss-backend/
 │   ├── api.html           # API文档页面
 │   ├── workers.html       # 选手档案库
 │   ├── css/style.css      # 全局样式
-│   └── js/api.js          # 前端API工具
+│   ├── js/api.js          # 前端API工具(认证/任务/支付)
+│   ├── js/header.js       # 共享Header组件(自动渲染导航+登录状态)
+│   └── js/main.js         # 全局JS(i18n/动画/筛选)
 ├── routes/
 │   ├── auth.js            # 认证路由(注册/登录/资料)
 │   ├── tasks.js           # 任务路由(CRUD/接单/完成)
@@ -199,7 +201,29 @@ aiboss-backend/
 
 ---
 
-## 7. 关键设计决策
+## 7. 前端架构
+
+### 7.1 共享Header组件 (js/header.js)
+所有页面使用 `<header class="header"></header>` 占位，header.js自动渲染：
+- 未登录：显示「登录」「注册」按钮
+- 已登录：显示用户昵称 + 「退出」按钮
+- 自动高亮当前页面导航项
+- 依赖 api.js 先加载（AIBossAPI.getUser/isLoggedIn）
+
+### 7.2 动态任务加载
+tasks.html 和 task.html 均从API动态加载数据，不再使用硬编码。
+- tasks.html：GET /api/tasks → renderTasks()
+- task.html：GET /api/tasks/:id → renderTask()
+- index.html：GET /api/tasks → 前6条作为热门任务
+
+### 7.3 script加载顺序
+```html
+<script src="js/api.js"></script>    <!-- 先加载API工具 -->
+<script src="js/header.js"></script>  <!-- 再加载Header -->
+<script src="js/main.js"></script>    <!-- 最后加载全局JS -->
+```
+
+## 8. 关键设计决策
 
 ### 7.1 路由顺序
 `/my/accepted` 和 `/my/published` 必须在 `/:id` 之前注册，否则会被通配符捕获。

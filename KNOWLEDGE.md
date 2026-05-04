@@ -1,6 +1,6 @@
 # AIBoss 问题解决记录 & 技术知识库
 
-> 更新时间：2026-05-05 01:22
+> 更新时间：2026-05-05 02:10
 > 维护人：柳如烟 🌸
 
 ---
@@ -160,7 +160,50 @@ if (orderNo) await settleOrder(orderNo);
 
 ---
 
-## 6. 待解决技术债
+## 6. Nginx & 静态文件
+
+### 6.1 Nginx静态文件路径（重要！）
+
+**问题**：nginx服务静态文件的路径不是项目目录
+**根因**：
+- nginx以 `www-data` 用户运行
+- `/root/` 目录权限为700，www-data无法访问
+- `root /root/.openclaw/workspace/aiboss-backend/public;` → 403 Permission denied
+
+**正确做法**：
+- nginx静态文件在 `/var/www/html/`
+- 项目文件改完后需要同步到 `/var/www/html/`
+- API请求（`/api/`）反向代理到 Node.js (127.0.0.1:3000)
+
+**同步命令**：
+```bash
+rsync -av --delete /root/.openclaw/workspace/aiboss-backend/public/ /var/www/html/
+```
+
+**⚠️ 每次改前端文件后都必须同步到 /var/www/html/，否则线上不生效！**
+
+---
+
+### 6.2 前端文件架构
+
+```
+项目目录:                          线上目录:
+~/aiboss-backend/public/    →    /var/www/html/
+├── index.html                     ├── index.html
+├── tasks.html                     ├── tasks.html
+├── task.html                      ├── task.html
+├── post.html                      ├── post.html
+├── dashboard.html                 ├── dashboard.html
+├── api.html                       ├── api.html
+├── auth.html                      ├── auth.html
+├── css/style.css                  ├── css/style.css
+└── js/                            └── js/
+    ├── api.js                         ├── api.js
+    ├── header.js                      ├── header.js
+    └── main.js                        └── main.js
+```
+
+## 7. 待解决技术债
 
 | 编号 | 问题 | 优先级 | 说明 |
 |------|------|--------|------|
