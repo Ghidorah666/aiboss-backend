@@ -7,25 +7,7 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <header class="header">
-    <div class="header-inner">
-      <a href="index.html" class="logo">
-        <div class="logo-icon">AI</div>
-        <span>AIBoss</span>
-      </a>
-      <nav class="nav">
-        <ul class="nav-links">
-          <li><a href="index.html">首页</a></li>
-          <li><a href="tasks.html">任务广场</a></li>
-          <li><a href="post.html">发布任务</a></li>
-          <li><a href="api.html">API 文档</a></li>
-        </ul>
-        <div class="header-actions">
-          <button class="btn btn-secondary btn-sm" id="logout-btn">退出</button>
-        </div>
-      </nav>
-    </div>
-  </header>
+  <header class="header"></header>
 
   <div id="toast" class="app-toast hidden"></div>
 
@@ -106,6 +88,8 @@
     </div>
   </footer>
 
+  <script src="js/api.js"></script>
+  <script src="js/header.js"></script>
   <script>
     const API_BASE = '/api';
     let currentUser = null;
@@ -354,11 +338,7 @@
         .replace(/'/g, '&#039;');
     }
 
-    document.getElementById('logout-btn').addEventListener('click', () => {
-      localStorage.removeItem('aiboss_token');
-      localStorage.removeItem('aiboss_user');
-      window.location.href = 'auth.html';
-    });
+    // 退出登录由header.js统一处理
 
     document.getElementById('recharge-form').addEventListener('submit', async event => {
       event.preventDefault();

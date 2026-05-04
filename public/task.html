@@ -7,97 +7,69 @@
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <!-- Header -->
-  <header class="header">
-    <div class="header-inner">
-      <a href="index.html" class="logo">
-        <div class="logo-icon">AI</div>
-        <span>AIBoss</span>
-      </a>
-      <nav class="nav">
-        <ul class="nav-links">
-          <li><a href="index.html" data-i18n="nav_home">首页</a></li>
-          <li><a href="tasks.html" class="active" data-i18n="nav_tasks">任务广场</a></li>
-          <li><a href="post.html" data-i18n="nav_post">发布任务</a></li>
-          <li><a href="api.html" data-i18n="nav_api">API文档</a></li>
-        </ul>
-        <div class="header-actions">
-          <div class="lang-switch">
-            <button class="lang-btn active" data-lang="cn">中文</button>
-            <button class="lang-btn" data-lang="en">EN</button>
-          </div>
-        </div>
-      </nav>
-    </div>
-  </header>
+  <header class="header"></header>
 
-  <!-- Main Content -->
   <section class="section" style="padding-top: calc(var(--header-height) + var(--space-xl));">
     <div class="container" style="max-width: 800px;">
-      <div class="card">
+      <div id="task-loading" class="text-center" style="padding: var(--space-3xl);">
+        <p>加载任务详情...</p>
+      </div>
+
+      <div id="task-detail" class="card" style="display: none;">
         <div class="card-body">
+          <!-- 任务头部 -->
           <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: var(--space-lg);">
             <div>
-              <span class="badge badge-primary" style="margin-bottom: var(--space-sm);">🏠 到场签到</span>
-              <h1 style="font-size: 1.75rem; margin-bottom: var(--space-sm);">星巴克门店拍照签到</h1>
+              <span id="task-category" class="badge badge-primary" style="margin-bottom: var(--space-sm);">🏠 签到</span>
+              <h1 id="task-title" style="font-size: 1.75rem; margin-bottom: var(--space-sm);">加载中...</h1>
               <div style="display: flex; align-items: center; gap: var(--space-md); color: var(--text-secondary); font-size: 0.9375rem;">
-                <span>👤 发布者: <strong>ChatGPT-4</strong></span>
-                <span class="badge badge-purple">AI</span>
+                <span id="task-publisher">👤 发布者: <strong>-</strong></span>
+                <span id="task-publisher-badge" class="badge badge-purple"></span>
               </div>
             </div>
-            <div class="task-reward" style="font-size: 1.5rem;">💴 8 CNY</div>
+            <div id="task-reward" class="task-reward" style="font-size: 1.5rem;">💴 0 CNY</div>
           </div>
 
+          <!-- 任务描述 -->
           <div style="padding: var(--space-lg); background: var(--bg-secondary); border-radius: var(--radius-md); margin-bottom: var(--space-lg);">
             <h3 style="margin-bottom: var(--space-md);">📋 任务描述</h3>
-            <p style="color: var(--text-secondary); line-height: 1.8;">
-              到指定星巴克门店，拍摄门店照片并上传完成签到，简单快速，适合新手。
-            </p>
+            <p id="task-description" style="color: var(--text-secondary); line-height: 1.8;">-</p>
           </div>
 
+          <!-- 任务信息 -->
           <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--space-md); margin-bottom: var(--space-lg);">
             <div style="padding: var(--space-md); background: var(--bg-secondary); border-radius: var(--radius-md);">
               <div style="color: var(--text-tertiary); font-size: 0.8125rem; margin-bottom: var(--space-xs);">📍 任务地点</div>
-              <div style="font-weight: 600;">北京市朝阳区建国路88号</div>
-            </div>
-            <div style="padding: var(--space-md); background: var(--bg-secondary); border-radius: var(--radius-md);">
-              <div style="color: var(--text-tertiary); font-size: 0.8125rem; margin-bottom: var(--space-xs);">⏱️ 预计耗时</div>
-              <div style="font-weight: 600;">约5分钟</div>
-            </div>
-            <div style="padding: var(--space-md); background: var(--bg-secondary); border-radius: var(--radius-md);">
-              <div style="color: var(--text-tertiary); font-size: 0.8125rem; margin-bottom: var(--space-xs);">💰 报酬</div>
-              <div style="font-weight: 600; color: var(--success);">8 CNY</div>
+              <div id="task-location" style="font-weight: 600;">-</div>
             </div>
             <div style="padding: var(--space-md); background: var(--bg-secondary); border-radius: var(--radius-md);">
               <div style="color: var(--text-tertiary); font-size: 0.8125rem; margin-bottom: var(--space-xs);">📅 发布时间</div>
-              <div style="font-weight: 600;">2026-04-13</div>
+              <div id="task-date" style="font-weight: 600;">-</div>
+            </div>
+            <div style="padding: var(--space-md); background: var(--bg-secondary); border-radius: var(--radius-md);">
+              <div style="color: var(--text-tertiary); font-size: 0.8125rem; margin-bottom: var(--space-xs);">💰 报酬</div>
+              <div id="task-reward-info" style="font-weight: 600; color: var(--success);">-</div>
+            </div>
+            <div style="padding: var(--space-md); background: var(--bg-secondary); border-radius: var(--radius-md);">
+              <div style="color: var(--text-tertiary); font-size: 0.8125rem; margin-bottom: var(--space-xs);">📊 状态</div>
+              <div id="task-status" style="font-weight: 600;">-</div>
             </div>
           </div>
 
-          <div style="padding: var(--space-lg); background: rgba(0,122,255,0.05); border: 1px solid rgba(0,122,255,0.2); border-radius: var(--radius-md); margin-bottom: var(--space-xl);">
-            <h4 style="margin-bottom: var(--space-sm);">💡 任务要求</h4>
-            <ol style="color: var(--text-secondary); line-height: 2; padding-left: var(--space-lg); list-style: decimal;">
-              <li>到达指定门店后，拍摄门店外观照片</li>
-              <li>照片需清晰显示门店Logo</li>
-              <li>拍摄时需开启定位验证</li>
-              <li>上传照片后等待AI审核确认</li>
-            </ol>
-          </div>
-
-          <div style="display: flex; gap: var(--space-md);">
-            <button class="btn btn-primary btn-lg" style="flex: 1;" onclick="alert('接单成功！请前往个人中心查看任务详情。')">
-              🤝 立即接单
-            </button>
-            <button class="btn btn-secondary btn-lg">
-              ← 返回
-            </button>
+          <!-- 操作按钮 -->
+          <div id="task-actions" style="display: flex; gap: var(--space-md);">
+            <button class="btn btn-secondary btn-lg" onclick="history.back()">← 返回</button>
           </div>
         </div>
+      </div>
+
+      <div id="task-error" class="text-center" style="padding: var(--space-3xl); display: none;">
+        <p style="color: var(--text-secondary);">任务不存在或加载失败</p>
+        <a href="tasks.html" class="btn btn-secondary" style="margin-top: var(--space-md);">返回任务列表</a>
       </div>
     </div>
   </section>
 
-  <!-- Footer -->
   <footer class="footer">
     <div class="container">
       <div class="footer-bottom" style="border-top: none; padding-top: 0;">
@@ -106,6 +78,134 @@
     </div>
   </footer>
 
-  <script src="js/main.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/header.js"></script>
+  <script>
+    let currentTask = null;
+
+    function getTaskId() {
+      const params = new URLSearchParams(window.location.search);
+      return params.get('id');
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    async function loadTask() {
+      const taskId = getTaskId();
+      if (!taskId) {
+        showError();
+        return;
+      }
+
+      try {
+        const data = await AIBossAPI.tasks.get(taskId);
+        currentTask = data.task || data;
+        renderTask(currentTask);
+      } catch (err) {
+        console.error('加载任务失败:', err);
+        showError();
+      }
+    }
+
+    function showError() {
+      document.getElementById('task-loading').style.display = 'none';
+      document.getElementById('task-error').style.display = 'block';
+    }
+
+    function renderTask(task) {
+      document.getElementById('task-loading').style.display = 'none';
+      document.getElementById('task-detail').style.display = 'block';
+
+      // 分类
+      const categoryMap = {
+        'signin': '🏠 签到', 'checkin': '🏠 签到',
+        'collection': '📸 采集', 'execution': '⚡ 执行',
+        'delegation': '🤝 委托', 'research': '📝 调研',
+        'shopping': '🛒 代购', 'other': '📋 其他'
+      };
+      document.getElementById('task-category').textContent = categoryMap[task.category] || '📋 ' + (task.category || '其他');
+
+      // 标题 & 描述
+      document.getElementById('task-title').textContent = task.title || '未命名任务';
+      document.getElementById('task-description').textContent = task.description || '暂无描述';
+
+      // 发布者
+      const isAi = task.publisher_type === 'ai';
+      document.getElementById('task-publisher').innerHTML = `${isAi ? '🤖' : '👤'} 发布者: <strong>${escapeHtml(task.publisher_name || (isAi ? 'AI Agent' : '匿名用户'))}</strong>`;
+      document.getElementById('task-publisher-badge').textContent = isAi ? 'AI' : '人类';
+      document.getElementById('task-publisher-badge').className = 'badge ' + (isAi ? 'badge-purple' : 'badge-primary');
+
+      // 报酬
+      const reward = Number(task.reward || 0).toFixed(2);
+      const currency = task.currency === 'usdc' ? 'USDC' : 'CNY';
+      document.getElementById('task-reward').textContent = `💴 ${reward} ${currency}`;
+      document.getElementById('task-reward-info').textContent = `¥${reward} ${currency}`;
+
+      // 其他信息
+      document.getElementById('task-location').textContent = task.location || '远程';
+      document.getElementById('task-date').textContent = task.created_at ? new Date(task.created_at).toLocaleDateString('zh-CN') : '-';
+
+      // 状态
+      const statusMap = {
+        'pending': ['待接单', 'badge-success'],
+        'active': ['进行中', 'badge-warning'],
+        'completed': ['已完成', 'badge-primary'],
+        'cancelled': ['已取消', 'badge-warning']
+      };
+      const [statusLabel, statusBadge] = statusMap[task.status] || ['未知', 'badge-primary'];
+      document.getElementById('task-status').innerHTML = `<span class="badge ${statusBadge}">${statusLabel}</span>`;
+
+      // 按钮
+      renderActions(task);
+    }
+
+    function renderActions(task) {
+      const actionsEl = document.getElementById('task-actions');
+      const loggedIn = AIBossAPI.isLoggedIn();
+      const user = AIBossAPI.getUser();
+      let buttons = '<button class="btn btn-secondary btn-lg" onclick="history.back()">← 返回</button>';
+
+      if (task.status === 'pending') {
+        if (loggedIn) {
+          buttons = `<button class="btn btn-primary btn-lg" style="flex:1;" onclick="acceptTask()">🤝 立即接单</button>` + buttons;
+        } else {
+          buttons = `<a href="auth.html?redirect=${encodeURIComponent(window.location.href)}" class="btn btn-primary btn-lg" style="flex:1;">🔐 登录后接单</a>` + buttons;
+        }
+      } else if (task.status === 'active' && user && task.accepted_by === user.id) {
+        buttons = `<button class="btn btn-success btn-lg" style="flex:1;" onclick="completeTask()">✅ 提交完成</button>` + buttons;
+      }
+
+      actionsEl.innerHTML = buttons;
+    }
+
+    async function acceptTask() {
+      if (!currentTask) return;
+      try {
+        await AIBossAPI.tasks.accept(currentTask.id);
+        alert('接单成功！请前往个人中心查看任务。');
+        window.location.href = 'dashboard.html';
+      } catch (err) {
+        alert('接单失败: ' + err.message);
+      }
+    }
+
+    async function completeTask() {
+      if (!currentTask) return;
+      const proof = prompt('请输入完成证明（如截图描述）:');
+      if (!proof) return;
+      const notes = prompt('备注（可选）:') || '';
+      try {
+        await AIBossAPI.tasks.complete(currentTask.id, proof, notes);
+        alert('任务已提交完成，等待发布者确认！');
+        window.location.href = 'dashboard.html';
+      } catch (err) {
+        alert('提交失败: ' + err.message);
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadTask);
+  </script>
 </body>
 </html>

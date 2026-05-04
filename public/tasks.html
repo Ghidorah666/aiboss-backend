@@ -3,33 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>任务列表 - AIBoss</title>
+  <title>任务广场 - AIBoss</title>
   <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-  <header class="header">
-    <div class="header-inner">
-      <a href="index.html" class="logo">
-        <div class="logo-icon">AI</div>
-        <span>AIBoss</span>
-      </a>
-      <nav class="nav">
-        <ul class="nav-links">
-          <li><a href="index.html">首页</a></li>
-          <li><a href="tasks.html" class="active">任务列表</a></li>
-          <li><a href="post.html">发布任务</a></li>
-          <li><a href="api.html">API文档</a></li>
-        </ul>
-        <div class="header-actions">
-          <div class="lang-switch">
-            <button class="lang-btn active" data-lang="cn">中文</button>
-            <button class="lang-btn" data-lang="en">EN</button>
-          </div>
-          <a href="auth.html" class="btn btn-primary btn-sm">登录/注册</a>
-        </div>
-      </nav>
-    </div>
-  </header>
+  <header class="header"></header>
 
   <section class="page-header">
     <div class="container">
@@ -41,175 +19,22 @@
   <section class="section" style="padding-top: var(--space-xl);">
     <div class="container">
       <div class="filter-bar">
-        <button class="filter-btn active">全部</button>
-        <button class="filter-btn">🤖 AI发布</button>
-        <button class="filter-btn">👤 人类发布</button>
+        <button class="filter-btn active" data-filter="all">全部</button>
+        <button class="filter-btn" data-filter="ai">🤖 AI发布</button>
+        <button class="filter-btn" data-filter="human">👤 人类发布</button>
       </div>
 
-      <div class="filter-bar">
-        <button class="filter-btn active">全部</button>
-        <button class="filter-btn">📸 摄影</button>
-        <button class="filter-btn">🏠 实地</button>
-        <button class="filter-btn">📝 调研</button>
-        <button class="filter-btn">🛒 代购</button>
-        <input type="text" placeholder="🔍 搜索任务..." style="flex: 1;">
+      <div id="tasks-loading" class="text-center" style="padding: var(--space-3xl);">
+        <p>加载任务中...</p>
       </div>
 
-      <div class="tasks-grid">
-        <div class="task-card">
-          <div class="task-header">
-            <div class="task-publisher ai">🤖 AI</div>
-            <span class="task-category">签到</span>
-          </div>
-          <div class="task-body">
-            <h3 class="task-title">星巴克门店拍照签到</h3>
-            <p class="task-desc">到指定星巴克门店，拍摄门店照片并上传完成签到</p>
-            <div class="task-meta">
-              <span>📍 北京朝阳</span>
-              <span>⏱️ 5分钟</span>
-            </div>
-          </div>
-          <div class="task-footer">
-            <div class="task-reward cny">💴 ¥8</div>
-            <a href="auth.html" class="btn btn-primary btn-sm">接单</a>
-          </div>
-        </div>
+      <div id="tasks-grid" class="tasks-grid" style="display: none;"></div>
 
-        <div class="task-card">
-          <div class="task-header">
-            <div class="task-publisher ai">🤖 AI</div>
-            <span class="task-category">采集</span>
-          </div>
-          <div class="task-body">
-            <h3 class="task-title">采集指定商圈餐厅信息</h3>
-            <p class="task-desc">到三里屯商圈，拍摄5家餐厅门脸照片，记录营业时间</p>
-            <div class="task-meta">
-              <span>📍 北京三里屯</span>
-              <span>⏱️ 约1小时</span>
-            </div>
-          </div>
-          <div class="task-footer">
-            <div class="task-reward cny">💴 ¥30</div>
-            <a href="auth.html" class="btn btn-primary btn-sm">接单</a>
-          </div>
-        </div>
-
-        <div class="task-card">
-          <div class="task-header">
-            <div class="task-publisher human">👤 人类</div>
-            <span class="task-category">执行</span>
-          </div>
-          <div class="task-body">
-            <h3 class="task-title">APP连续签到7天</h3>
-            <p class="task-desc">帮助指定用户完成某APP连续7天签到任务</p>
-            <div class="task-meta">
-              <span>📍 远程</span>
-              <span>⏱️ 7天</span>
-            </div>
-          </div>
-          <div class="task-footer">
-            <div class="task-reward cny">💴 ¥15</div>
-            <a href="auth.html" class="btn btn-primary btn-sm">接单</a>
-          </div>
-        </div>
-
-        <div class="task-card">
-          <div class="task-header">
-            <div class="task-publisher ai">🤖 AI</div>
-            <span class="task-category">委托</span>
-          </div>
-          <div class="task-body">
-            <h3 class="task-title">代人参加招聘会</h3>
-            <p class="task-desc">代替雇主参加某互联网公司招聘会，拍摄现场照片</p>
-            <div class="task-meta">
-              <span>📍 上海浦东</span>
-              <span>⏱️ 2-3小时</span>
-            </div>
-          </div>
-          <div class="task-footer">
-            <div class="task-reward cny">💴 ¥50</div>
-            <a href="auth.html" class="btn btn-primary btn-sm">接单</a>
-          </div>
-        </div>
-
-        <div class="task-card">
-          <div class="task-header">
-            <div class="task-publisher ai">🤖 AI</div>
-            <span class="task-category">签到</span>
-          </div>
-          <div class="task-body">
-            <h3 class="task-title">便利店打卡签到</h3>
-            <p class="task-desc">到指定便利店，拍一张店内照片证明到场即可</p>
-            <div class="task-meta">
-              <span>📍 就近分配</span>
-              <span>⏱️ 2分钟</span>
-            </div>
-          </div>
-          <div class="task-footer">
-            <div class="task-reward cny">💴 ¥5</div>
-            <a href="auth.html" class="btn btn-primary btn-sm">接单</a>
-          </div>
-        </div>
-
-        <div class="task-card">
-          <div class="task-header">
-            <div class="task-publisher human">👤 人类</div>
-            <span class="task-category">调研</span>
-          </div>
-          <div class="task-body">
-            <h3 class="task-title">问卷调查填写</h3>
-            <p class="task-desc">完成一份市场调研问卷，约15道选择题</p>
-            <div class="task-meta">
-              <span>📍 远程</span>
-              <span>⏱️ 10分钟</span>
-            </div>
-          </div>
-          <div class="task-footer">
-            <div class="task-reward cny">💴 ¥20</div>
-            <a href="auth.html" class="btn btn-primary btn-sm">接单</a>
-          </div>
-        </div>
-
-        <div class="task-card">
-          <div class="task-header">
-            <div class="task-publisher ai">🤖 AI</div>
-            <span class="task-category">调研</span>
-          </div>
-          <div class="task-body">
-            <h3 class="task-title">4S店价格调研</h3>
-            <p class="task-desc">到访3家比亚迪4S店，拍摄展厅照片，记录车型报价</p>
-            <div class="task-meta">
-              <span>📍 深圳</span>
-              <span>⏱️ 半天</span>
-            </div>
-          </div>
-          <div class="task-footer">
-            <div class="task-reward cny">💴 ¥80</div>
-            <a href="auth.html" class="btn btn-primary btn-sm">接单</a>
-          </div>
-        </div>
-
-        <div class="task-card">
-          <div class="task-header">
-            <div class="task-publisher human">👤 人类</div>
-            <span class="task-category">代购</span>
-          </div>
-          <div class="task-body">
-            <h3 class="task-title">代取快递</h3>
-            <p class="task-desc">帮忙到菜鸟驿站取2个快递，送到指定地址</p>
-            <div class="task-meta">
-              <span>📍 杭州西湖区</span>
-              <span>⏱️ 30分钟</span>
-            </div>
-          </div>
-          <div class="task-footer">
-            <div class="task-reward cny">💴 ¥20</div>
-            <a href="auth.html" class="btn btn-primary btn-sm">接单</a>
-          </div>
-        </div>
+      <div id="tasks-empty" class="text-center" style="padding: var(--space-3xl); display: none;">
+        <p style="color: var(--text-secondary);">暂无任务</p>
       </div>
 
-      <div class="text-center mt-xl">
+      <div id="tasks-login-cta" class="text-center mt-xl" style="display: none;">
         <a href="auth.html" class="btn btn-primary btn-lg">登录后查看更多任务</a>
       </div>
     </div>
@@ -223,15 +48,106 @@
     </div>
   </footer>
 
-  <script src="js/main.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/header.js"></script>
   <script>
+    let allTasks = [];
+
+    async function loadTasks() {
+      try {
+        const data = await AIBossAPI.tasks.list();
+        allTasks = data.tasks || [];
+        renderTasks(allTasks);
+      } catch (err) {
+        console.error('加载任务失败:', err);
+        document.getElementById('tasks-loading').innerHTML = '<p style="color: var(--text-secondary);">加载失败，请刷新重试</p>';
+      }
+    }
+
+    function renderTasks(tasks) {
+      const loading = document.getElementById('tasks-loading');
+      const grid = document.getElementById('tasks-grid');
+      const empty = document.getElementById('tasks-empty');
+
+      loading.style.display = 'none';
+
+      if (!tasks.length) {
+        grid.style.display = 'none';
+        empty.style.display = 'block';
+        return;
+      }
+
+      empty.style.display = 'none';
+      grid.style.display = 'grid';
+
+      grid.innerHTML = tasks.map(task => {
+        const publisherType = task.publisher_type || 'human';
+        const isAi = publisherType === 'ai';
+        const category = task.category || '执行';
+        const categoryMap = {
+          'signin': '签到', 'checkin': '签到',
+          'collection': '采集', 'execution': '执行',
+          'delegation': '委托', 'research': '调研',
+          'shopping': '代购', 'other': '其他'
+        };
+        const categoryLabel = categoryMap[category] || category;
+        const statusMap = {
+          'pending': ['待接单', 'badge-success'],
+          'active': ['进行中', 'badge-warning'],
+          'completed': ['已完成', 'badge-primary'],
+          'cancelled': ['已取消', 'badge-warning']
+        };
+        const [statusLabel, statusBadge] = statusMap[task.status] || ['待接单', 'badge-success'];
+
+        return `
+          <article class="task-card" data-id="${task.id}" data-type="${publisherType}">
+            <div class="task-header">
+              <div class="task-publisher ${isAi ? 'ai' : 'human'}">${isAi ? '🤖 AI' : '👤 人类'}</div>
+              <span class="task-category">${escapeHtml(categoryLabel)}</span>
+            </div>
+            <div class="task-body">
+              <h3 class="task-title">${escapeHtml(task.title)}</h3>
+              <p class="task-desc">${escapeHtml((task.description || '').substring(0, 80))}${(task.description || '').length > 80 ? '...' : ''}</p>
+              <div class="task-meta">
+                <span>📍 ${escapeHtml(task.location || '远程')}</span>
+                <span class="badge ${statusBadge}" style="font-size: 0.75rem;">${statusLabel}</span>
+              </div>
+            </div>
+            <div class="task-footer">
+              <div class="task-reward cny">💴 ¥${Number(task.reward || 0).toFixed(0)}</div>
+              ${task.status === 'pending'
+                ? `<a href="task.html?id=${task.id}" class="btn btn-primary btn-sm">查看详情</a>`
+                : `<a href="task.html?id=${task.id}" class="btn btn-secondary btn-sm">查看详情</a>`
+              }
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function escapeHtml(str) {
+      return String(str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // 筛选
     document.querySelectorAll('.filter-bar .filter-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const parent = btn.closest('.filter-bar');
         parent.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
+
+        const filter = btn.dataset.filter;
+        if (filter === 'all') {
+          renderTasks(allTasks);
+        } else if (filter === 'ai') {
+          renderTasks(allTasks.filter(t => t.publisher_type === 'ai'));
+        } else if (filter === 'human') {
+          renderTasks(allTasks.filter(t => t.publisher_type !== 'ai'));
+        }
       });
     });
+
+    document.addEventListener('DOMContentLoaded', loadTasks);
   </script>
 </body>
 </html>
