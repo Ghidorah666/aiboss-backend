@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { taskOps, recordOps } = require('../models/db');
+const { taskOps, recordOps, userOps } = require('../models/db');
 const { requireAuth } = require('./auth');
 
 router.get('/', (req, res) => {
@@ -147,6 +147,44 @@ router.post('/:id/complete', requireAuth, (req, res) => {
   } catch (error) {
     console.error('Complete task error:', error);
     return res.status(500).json({ error: 'Failed to submit completion' });
+  }
+});
+
+// 确认完成（发布者操作，触发打款）
+router.post('/:id/confirm', requireAuth, (req, res) => {
+  try {
+    const taskId = Number.parseInt(req.params.id, 10);
+    const task = taskOps.findById(taskId);
+
+    if (!task) {
+      return res.status(404).json({ error: 'Task not found' });
+    }
+    if (task.publisher_id !== req.user.userId) {
+      return res.status(403).json({ error: 'Only the publisher can confirm completion' });
+    }
+
+    // 找到已提交完成的接单记录
+    const records = recordOps.findByTask(taskId);
+    const completedRecord = records.find(r => r.status === 'completed');
+
+    if (!completedRecord) {
+      return res.status(400).json({ error: 'No completion submission to confirm' });
+    }
+
+    // 更新任务状态为已完成
+    taskOps.updateStatus(taskId, 'completed');
+
+    // 给接单者打款（增加余额）
+    userOps.updateBalance(completedRecord.worker_id, task.reward, task.currency || 'cny');
+
+    return res.json({
+      message: `Task confirmed. Worker paid ¥${task.reward}`,
+      reward: task.reward,
+      worker_id: completedRecord.worker_id
+    });
+  } catch (error) {
+    console.error('Confirm task error:', error);
+    return res.status(500).json({ error: 'Failed to confirm task' });
   }
 });
 

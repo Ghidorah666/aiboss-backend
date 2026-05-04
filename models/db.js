@@ -284,6 +284,21 @@ const recordOps = {
     );
   },
   
+  findByTask: (taskId) => {
+    const result = db.exec(`
+      SELECT tr.*, t.title, t.reward, t.currency, t.location 
+      FROM task_records tr 
+      JOIN tasks t ON tr.task_id = t.id 
+      WHERE tr.task_id = ? 
+      ORDER BY tr.created_at DESC
+    `, [taskId]);
+    if (result.length === 0) return [];
+    const columns = result[0].columns;
+    return result[0].values.map(row => 
+      columns.reduce((obj, col, i) => ({ ...obj, [col]: row[i] }), {})
+    );
+  },
+
   complete: (id, proof, notes) => {
     db.run('UPDATE task_records SET status = ?, proof = ?, notes = ?, completed_at = CURRENT_TIMESTAMP WHERE id = ?', ['completed', proof, notes, id]);
     saveDB();

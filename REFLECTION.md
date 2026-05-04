@@ -48,7 +48,23 @@
 
 ---
 
-### 2.2 幂等性设计
+### 2.3 任务闭环设计（2026-05-05 修复）
+
+**问题**：代码重构时移除了 `POST /:id/confirm` 端点和 `recordOps.findByTask()` 方法，导致接单者提交完成后无法获得打款。
+
+**修复**：
+1. `models/db.js` — 恢复 `recordOps.findByTask(taskId)` 方法
+2. `routes/tasks.js` — 恢复 `POST /:id/confirm` 端点
+3. `routes/tasks.js` — 补充 `userOps` 导入
+
+**完整任务闭环**：
+```
+发布任务(pending) → 支付(paid→active) → 接单(accepted) → 提交完成(completed) → 发布者确认(confirm) → 打款
+```
+
+**教训**：代码简化时要绘制完整业务流程图，逐环节检查是否有断点。删代码前先问：“这个端点的调用方在哪里？删了之后调用方会怎样？”
+
+### 2.4 幂等性设计
 
 **决策**：`settlePaidOrder()` 函数同时被notify和settle调用。
 

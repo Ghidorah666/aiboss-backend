@@ -90,6 +90,7 @@ aiboss-backend/
 | POST | / | 发布任务(状态pending) | ✅ |
 | POST | /:id/accept | 接单 | ✅ |
 | POST | /:id/complete | 提交完成证明 | ✅ |
+| POST | /:id/confirm | 确认完成+打款（发布者） | ✅ |
 
 ### 支付 `/api/payment`
 | 方法 | 路径 | 说明 | 鉴权 |

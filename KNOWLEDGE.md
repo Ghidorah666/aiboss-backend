@@ -164,7 +164,7 @@ if (orderNo) await settleOrder(orderNo);
 
 | 编号 | 问题 | 优先级 | 说明 |
 |------|------|--------|------|
-| TD-001 | confirm端点被移除 | 🔴高 | 发布者无法确认任务完成并打款 |
+| TD-001 | confirm端点被移除 | ✅已修复 | 2026-05-05 恢复POST /:id/confirm端点 |
 | TD-002 | invitations表被移除 | 🟡中 | 邀请功能不可用 |
 | TD-003 | withdrawals表被移除 | 🟡中 | 提现记录无法持久化 |
 | TD-004 | 防暴力破解被移除 | 🟡中 | 登录安全风险 |
