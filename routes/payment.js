@@ -3,7 +3,7 @@ const router = express.Router();
 const crypto = require('crypto');
 const fs = require('fs');
 const path = require('path');
-const { orderOps, taskOps, userOps } = require('../models/db');
+const { orderOps, taskOps, userOps, withdrawOps } = require('../models/db');
 const { requireAuth } = require('./auth');
 
 const ALIPAY_CONFIG = {
@@ -357,24 +357,135 @@ router.get('/my-orders', requireAuth, (req, res) => {
   }
 });
 
+// ========== 提现申请 ==========
 router.post('/withdraw', requireAuth, (req, res) => {
-  const { amount, currency = 'cny', alipayId } = req.body;
-  const finalAmount = validateAmount(amount);
+  try {
+    const { amount, currency = 'cny', alipayId } = req.body;
+    const finalAmount = validateAmount(amount);
 
-  if (!finalAmount) {
-    return res.status(400).json({ error: 'Amount must be greater than 0' });
-  }
-
-  return res.status(202).json({
-    message: 'Withdraw request received. Manual review is required before payout.',
-    request: {
-      userId: req.user.userId,
-      amount: finalAmount.toFixed(2),
-      currency,
-      alipayId: alipayId || null,
-      status: 'pending_review'
+    if (!finalAmount) {
+      return res.status(400).json({ error: 'Amount must be greater than 0' });
     }
-  });
+    if (!alipayId) {
+      return res.status(400).json({ error: 'Alipay account is required' });
+    }
+
+    // 检查余额
+    const user = userOps.findById(req.user.userId);
+    if (!user || user.balance_cny < finalAmount) {
+      return res.status(400).json({ error: 'Insufficient balance' });
+    }
+
+    // 冻结余额
+    userOps.freezeBalance(req.user.userId, finalAmount);
+
+    // 创建提现记录
+    const withdrawNo = `W${Date.now()}${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+    withdrawOps.create(withdrawNo, req.user.userId, finalAmount, currency, alipayId);
+
+    return res.status(201).json({
+      message: 'Withdrawal request submitted. Manual review is required before payout.',
+      withdrawal: {
+        withdraw_no: withdrawNo,
+        amount: finalAmount,
+        currency,
+        alipay_id: alipayId,
+        status: 'pending_review'
+      }
+    });
+  } catch (error) {
+    console.error('Withdraw error:', error);
+    return res.status(500).json({ error: 'Withdrawal request failed' });
+  }
+});
+
+// ========== 我的提现记录 ==========
+router.get('/my-withdrawals', requireAuth, (req, res) => {
+  try {
+    const withdrawals = withdrawOps.findByUser(req.user.userId);
+    return res.json({ withdrawals });
+  } catch (error) {
+    console.error('List withdrawals error:', error);
+    return res.status(500).json({ error: 'Failed to list withdrawals' });
+  }
+});
+
+// ========== 管理员：提现申请列表 ==========
+router.get('/admin/withdrawals', requireAuth, (req, res) => {
+  try {
+    const { status } = req.query;
+    const withdrawals = withdrawOps.listAll(status);
+    return res.json({ withdrawals });
+  } catch (error) {
+    console.error('Admin list withdrawals error:', error);
+    return res.status(500).json({ error: 'Failed to list withdrawals' });
+  }
+});
+
+// ========== 管理员：审核提现 ==========
+router.post('/admin/withdrawals/:withdrawNo/approve', requireAuth, (req, res) => {
+  try {
+    const withdrawal = withdrawOps.findByNo(req.params.withdrawNo);
+    if (!withdrawal) {
+      return res.status(404).json({ error: 'Withdrawal not found' });
+    }
+    if (withdrawal.status !== 'pending_review') {
+      return res.status(400).json({ error: 'Withdrawal is not in pending_review status' });
+    }
+
+    withdrawOps.approve(withdrawal.withdraw_no, req.user.userId);
+    // 扣减冻结余额
+    userOps.unfreezeBalance(withdrawal.user_id, withdrawal.amount);
+
+    return res.json({ message: 'Withdrawal approved. Please process payout manually.', withdrawal: { ...withdrawal, status: 'approved' } });
+  } catch (error) {
+    console.error('Approve withdrawal error:', error);
+    return res.status(500).json({ error: 'Failed to approve withdrawal' });
+  }
+});
+
+// ========== 管理员：拒绝提现 ==========
+router.post('/admin/withdrawals/:withdrawNo/reject', requireAuth, (req, res) => {
+  try {
+    const { reason } = req.body;
+    const withdrawal = withdrawOps.findByNo(req.params.withdrawNo);
+    if (!withdrawal) {
+      return res.status(404).json({ error: 'Withdrawal not found' });
+    }
+    if (withdrawal.status !== 'pending_review') {
+      return res.status(400).json({ error: 'Withdrawal is not in pending_review status' });
+    }
+
+    withdrawOps.reject(withdrawal.withdraw_no, req.user.userId, reason || 'Rejected by admin');
+    // 退还冻结余额
+    userOps.updateBalance(withdrawal.user_id, withdrawal.amount, 'cny');
+    userOps.unfreezeBalance(withdrawal.user_id, -withdrawal.amount); // 减少冻结
+
+    return res.json({ message: 'Withdrawal rejected. Balance refunded.', withdrawal: { ...withdrawal, status: 'rejected' } });
+  } catch (error) {
+    console.error('Reject withdrawal error:', error);
+    return res.status(500).json({ error: 'Failed to reject withdrawal' });
+  }
+});
+
+// ========== 管理员：标记已打款 ==========
+router.post('/admin/withdrawals/:withdrawNo/paid', requireAuth, (req, res) => {
+  try {
+    const withdrawal = withdrawOps.findByNo(req.params.withdrawNo);
+    if (!withdrawal) {
+      return res.status(404).json({ error: 'Withdrawal not found' });
+    }
+    if (withdrawal.status !== 'approved') {
+      return res.status(400).json({ error: 'Withdrawal must be approved before marking as paid' });
+    }
+
+    withdrawOps.markPaid(withdrawal.withdraw_no);
+
+    return res.json({ message: 'Withdrawal marked as paid.', withdrawal: { ...withdrawal, status: 'paid' } });
+  } catch (error) {
+    console.error('Mark paid withdrawal error:', error);
+    return res.status(500).json({ error: 'Failed to mark as paid' });
+  }
 });
 
 module.exports = router;

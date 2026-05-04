@@ -2,7 +2,8 @@
 
 > 更新时间：2026-05-05 01:22
 > 维护人：柳如烟 🌸
-> 当前版本：v2.1 (GitHub commit eb1de0b)
+> 当前版本：v2.2 (GitHub commit 待定)
+> PRD版本：v1.0 (2026-05-05)
 
 ---
 
@@ -88,11 +89,12 @@ aiboss-backend/
 | GET | / | 任务列表(默认active) | ❌ |
 | GET | /my/accepted | 我接的任务 | ✅ |
 | GET | /my/published | 我发布的任务 | ✅ |
-| GET | /:id | 任务详情 | ❌ |
+| GET | /:id | 任务详情(+接单记录) | ❌ |
 | POST | / | 发布任务(状态pending) | ✅ |
 | POST | /:id/accept | 接单 | ✅ |
 | POST | /:id/complete | 提交完成证明 | ✅ |
-| POST | /:id/confirm | 确认完成+打款（发布者） | ✅ |
+| POST | /:id/confirm | 审核通过+打款(发布者) | ✅ |
+| POST | /:id/reject | 审核拒绝(发布者) | ✅ |
 
 ### 支付 `/api/payment`
 | 方法 | 路径 | 说明 | 鉴权 |
@@ -104,7 +106,12 @@ aiboss-backend/
 | POST | /settle/:orderNo | 补偿查询(主动确认) | ✅ |
 | GET | /query/:orderNo | 查询订单 | ✅ |
 | GET | /my-orders | 用户订单列表 | ✅ |
-| POST | /withdraw | 提现申请(人工审核) | ✅ |
+| POST | /withdraw | 提现申请(冻结余额) | ✅ |
+| GET | /my-withdrawals | 我的提现记录 | ✅ |
+| GET | /admin/withdrawals | 管理员-提现列表 | ✅ |
+| POST | /admin/withdrawals/:no/approve | 管理员-审核通过 | ✅ |
+| POST | /admin/withdrawals/:no/reject | 管理员-审核拒绝 | ✅ |
+| POST | /admin/withdrawals/:no/paid | 管理员-标记已打款 | ✅ |
 
 ### 其他
 | 方法 | 路径 | 说明 |
@@ -126,7 +133,10 @@ aiboss-backend/
 | alipay_id | TEXT | 支付宝账号(提现用) |
 | balance_cny | REAL | 人民币余额 |
 | balance_usdc | REAL | USDC余额(预留) |
+| role | TEXT | 用户角色(user/admin) |
+| frozen_balance_cny | REAL | 冻结余额(提现中) |
 | created_at | DATETIME | 创建时间 |
+| updated_at | DATETIME | 更新时间 |
 | updated_at | DATETIME | 更新时间 |
 
 ### tasks 表
@@ -141,8 +151,15 @@ aiboss-backend/
 | location | TEXT | 地点 |
 | reward | REAL | 报酬(元) |
 | currency | TEXT | 货币类型 |
-| status | TEXT | pending/active/completed/cancelled |
-| callback_url | TEXT | 回调URL |
+| status | TEXT | pending/active/accepted/submitted/completed/rejected/cancelled/expired |
+| callback_url | TEXT | 回调URL(AI Agent) |
+| proof_schema | TEXT | 证明要求描述 |
+| deadline_at | DATETIME | 截止时间 |
+| accepted_at | DATETIME | 接单时间 |
+| submitted_at | DATETIME | 提交时间 |
+| completed_at | DATETIME | 完成时间 |
+| max_workers | INTEGER | 最大接单人数(默认1) |
+| accepted_count | INTEGER | 已接单人数 |
 | created_at | DATETIME | 创建时间 |
 | updated_at | DATETIME | 更新时间 |
 
@@ -156,9 +173,29 @@ aiboss-backend/
 | amount | REAL | 金额 |
 | currency | TEXT | 货币类型 |
 | status | TEXT | pending/paid |
+| order_type | TEXT | recharge/task_payment |
+| provider | TEXT | 支付方式(alipay) |
 | trade_no | TEXT | 支付宝交易号 |
 | paid_at | DATETIME | 支付时间 |
+| settled_at | DATETIME | 结算时间 |
 | created_at | DATETIME | 创建时间 |
+
+### withdrawals 表
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | INTEGER PK | 自增ID |
+| withdraw_no | TEXT UNIQUE | 提现单号 |
+| user_id | INTEGER | 用户ID |
+| amount | REAL | 金额 |
+| currency | TEXT | 货币类型 |
+| alipay_id | TEXT | 支付宝账号 |
+| status | TEXT | pending_review/approved/rejected/paid |
+| reviewed_by | INTEGER | 审核人ID |
+| reviewed_at | DATETIME | 审核时间 |
+| paid_at | DATETIME | 打款时间 |
+| fail_reason | TEXT | 失败原因 |
+| created_at | DATETIME | 创建时间 |
+| updated_at | DATETIME | 更新时间 |
 
 ### task_records 表
 | 字段 | 类型 | 说明 |
@@ -166,10 +203,11 @@ aiboss-backend/
 | id | INTEGER PK | 自增ID |
 | task_id | INTEGER | 任务ID |
 | worker_id | INTEGER | 接单者用户ID |
-| status | TEXT | accepted/completed |
+| status | TEXT | accepted/submitted/completed/rejected/abandoned |
 | proof | TEXT | 完成证明 |
 | notes | TEXT | 备注 |
 | completed_at | DATETIME | 完成时间 |
+| rejected_at | DATETIME | 拒绝时间 |
 | created_at | DATETIME | 创建时间 |
 
 ---
